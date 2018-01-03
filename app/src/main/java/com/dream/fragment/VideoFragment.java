@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
@@ -73,7 +74,7 @@ public class VideoFragment extends BaseFragment implements AdapterView.OnItemCli
     /**
      * 扫描加载本地视频
      */
-    private List<Media> list;
+    private ArrayList<Media> list;
     public void getMediaData(){
         videoLoading.setVisibility(View.VISIBLE);
         handler.postDelayed(new Runnable() {
@@ -115,8 +116,9 @@ public class VideoFragment extends BaseFragment implements AdapterView.OnItemCli
     //视频列表点击事件，播放视频
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Intent intent=new Intent(getActivity(), SystemVideoPlayer.class);
-        intent.setData(Uri.parse(list.get(position).getData()));
+        Intent intent=new Intent(getActivity(),SystemVideoPlayer.class);
+        intent.putExtra("videoList",list);
+        intent.putExtra("currentIndex",position);
         startActivity(intent);
     }
 }

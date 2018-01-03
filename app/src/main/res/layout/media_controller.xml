@@ -25,6 +25,7 @@
                 android:src="@mipmap/player_nav_back"
                 />
             <TextView
+                android:id="@+id/player_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="#FFF"
@@ -118,6 +119,7 @@
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:clickable="true"
+                android:onClick="onClick"
                 android:src="@drawable/player_nav_next_selector"
                 />
             <TextView
