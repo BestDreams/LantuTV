@@ -24,6 +24,7 @@ public class NetworkMusicFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        System.out.println("网络音乐页面初始化");
         return inflater.inflate(R.layout.fragment_network_music, container, false);
     }
 

@@ -10,11 +10,12 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.dream.adapter.FragmentPageAdapter;
-import com.dream.fragment.LocalMusicFragment;
-import com.dream.fragment.LocalVideoFragment;
 import com.dream.fragment.MenuListFragment;
+import com.dream.fragment.MusicFragment;
 import com.dream.fragment.NetworkMusicFragment;
 import com.dream.fragment.NetworkVideoFragment;
+import com.dream.fragment.VideoFragment;
+import com.dream.utils.MyUtils;
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 import com.mxn.soul.flowingdrawer_core.FlowingDrawer;
 
@@ -23,6 +24,7 @@ import java.util.List;
 
 import devlight.io.library.ntb.NavigationTabBar;
 import es.dmoral.toasty.MyToast;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -53,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
             mMenuFragment = new MenuListFragment();
             fm.beginTransaction().add(R.id.id_container_menu, mMenuFragment).commit();
         }
-        showMenu = (ImageView) findViewById(R.id.show_menu);
+        showMenu = (ImageView) findViewById(R.id.main_menu);
         showMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -65,8 +67,8 @@ public class MainActivity extends AppCompatActivity {
     private List<Fragment> fragmentList;
     public void initFragment(){
         fragmentList=new ArrayList<>();
-        LocalVideoFragment localVideoFragment=new LocalVideoFragment();
-        LocalMusicFragment localMusicFragment=new LocalMusicFragment();
+        VideoFragment localVideoFragment=new VideoFragment();
+        MusicFragment localMusicFragment=new MusicFragment();
         NetworkVideoFragment networkVideoFragment=new NetworkVideoFragment();
         NetworkMusicFragment networkMusicFragment=new NetworkMusicFragment();
         fragmentList.add(localVideoFragment);
@@ -81,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
     private String[] colors;
     public void initNavigationTabBar(){
         mainViewpager = (ViewPager) findViewById(R.id.main_viewpager);
+        mainViewpager.setOffscreenPageLimit(3);
         mainViewpager.setAdapter(new FragmentPageAdapter(getSupportFragmentManager(),fragmentList));
         mainNav = (NavigationTabBar) findViewById(R.id.main_nav);
         colors=getResources().getStringArray(R.array.default_preview);
@@ -90,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                         getResources().getDrawable(R.mipmap.ic_fifth),
                         Color.parseColor(colors[0]))
                         .selectedIcon(getResources().getDrawable(R.mipmap.ic_sixth))
-                        .title("Video")
+                        .title("Media")
                         .badgeTitle("one")
                         .build()
         );
@@ -156,6 +159,5 @@ public class MainActivity extends AppCompatActivity {
             }
         }, 500);
     }
-
 
 }

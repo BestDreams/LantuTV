@@ -24,6 +24,7 @@ public class NetworkVideoFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        System.out.println("网络视频页面初始化");
         return inflater.inflate(R.layout.fragment_network_video, container, false);
     }
 
