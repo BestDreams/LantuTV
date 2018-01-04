@@ -1,16 +1,14 @@
 package com.dream.lantutv;
 
 import android.app.Activity;
-import android.app.Service;
-import android.graphics.Bitmap;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -26,9 +24,6 @@ import android.widget.VideoView;
 import com.dream.bean.Media;
 import com.dream.utils.MyUtils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 
 import es.dmoral.toasty.MyToast;
@@ -40,6 +35,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
      */
     private static final int MSG_PROGRESS = 0;
     private static final int MSG_AUTO_HIDE_MENU = 1;
+    private static final int MSG_HIDE_VLOUMEN = 2;
     /**
      * 是否显示控制面板
      */
@@ -56,6 +52,30 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
      * 当前视频索引
      */
     private int currentIndex;
+    /**
+     * 手势识别器
+     */
+    private GestureDetector gestureDetector;
+    /**
+     * 是否静音
+     */
+    private boolean isMute=false;
+    /**
+     * 声音管理器
+     */
+    private AudioManager audioManager;
+    /**
+     * 最大音量
+     */
+    private int maxVloume;
+    /**
+     * 当前音量
+     */
+    private int currentVolume;
+    /**
+     *是否是网络视频
+     */
+    private boolean isNetUri=false;
 
     private VideoView videoView;
     private RelativeLayout playerLayout;
@@ -69,12 +89,13 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
     private ImageView playerNext;
     private TextView playerTime;
     private TextView playerCurrentPosition;
-    private TextView playerLocal;
     private TextView playerSwitch;
+    private ImageView playerVolume;
     private TextView playerName;
     private SeekBar playerSeekbar;
-    private GestureDetector gestureDetector;
-
+    private TextView playerLightValue;
+    private TextView playerVolumeValue;
+    private RelativeLayout videoLoading;
     private Handler handler=new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -84,6 +105,9 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
                     break;
                 case MSG_AUTO_HIDE_MENU:
                     showMediaController(false);
+                    break;
+                case MSG_HIDE_VLOUMEN:
+                    playerVolumeValue.setVisibility(View.INVISIBLE);
                     break;
             }
         }
@@ -117,10 +141,13 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
         playerNext = (ImageView) findViewById(R.id.player_next);
         playerTime = (TextView) findViewById(R.id.player_time);
         playerCurrentPosition = (TextView) findViewById(R.id.player_currentPosition);
-        playerLocal = (TextView) findViewById(R.id.player_local);
         playerSwitch = (TextView) findViewById(R.id.player_switch);
+        playerVolume = (ImageView) findViewById(R.id.player_volume);
         playerName = (TextView) findViewById(R.id.player_name);
         playerSeekbar = (SeekBar) findViewById(R.id.player_seekbar);
+        playerLightValue = (TextView) findViewById(R.id.player_light_value);
+        playerVolumeValue = (TextView) findViewById(R.id.player_volume_value);
+        videoLoading = (RelativeLayout) findViewById(R.id.video_loading);
         gestureDetector=new GestureDetector(this,new GestureDetector.SimpleOnGestureListener(){
 
             @Override
@@ -149,13 +176,18 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
      * 初始化数据
      */
     public void initData(){
+        audioManager= (AudioManager) getSystemService(this.AUDIO_SERVICE);
+        maxVloume=audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        currentVolume=audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         videoList= (ArrayList<Media>) getIntent().getSerializableExtra("videoList");
         currentIndex=getIntent().getIntExtra("currentIndex",0);
         if (videoList==null||videoList.size()==0){
             //播放网络视频
             Uri uri = getIntent().getData();
             if (uri!=null){
+                isNetUri=MyUtils.isNetUri(uri);
                 videoView.setVideoURI(uri);
+                playerName.setText(uri.toString());
             }
         }else{
             //播放本地视频
@@ -170,6 +202,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
         videoView.setOnPreparedListener(new MyOnPreparedListener());
         videoView.setOnErrorListener(new MyOnErrorListener());
         videoView.setOnCompletionListener(new MyOnCompletionListener());
+        videoView.setOnInfoListener(new MyOnInfoListener());
         playerSeekbar.setOnSeekBarChangeListener(new MyOnSeekBarChangeListener());
         playerLayout.setOnTouchListener(new MyOnTouchListener());
     }
@@ -238,10 +271,34 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
     }
 
     /**
+     * 视频播放信息监听
+     */
+    class MyOnInfoListener implements MediaPlayer.OnInfoListener{
+
+        @Override
+        public boolean onInfo(MediaPlayer mp, int what, int extra) {
+            switch (what){
+                case MediaPlayer.MEDIA_INFO_BUFFERING_START:
+                    videoLoading.setVisibility(View.VISIBLE);
+                    break;
+                case MediaPlayer.MEDIA_INFO_BUFFERING_END:
+                    videoLoading.setVisibility(View.GONE);
+                    break;
+            }
+            return true;
+        }
+    }
+
+
+    /**
      * 触摸事件监听
+     * @startX X轴起始坐标
+     * @startY Y轴起始坐标
+     * @scrollState 滑动状态 0：未滑动 1横向滑动 2上下滑动
      */
     private float startX;
     private float startY;
+    private int scrollState=0;
     class MyOnTouchListener implements View.OnTouchListener{
 
         @Override
@@ -257,32 +314,38 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
                 case MotionEvent.ACTION_MOVE:
                     float endX=event.getX();
                     float endY=event.getY();
-                    //左右滑动
-                    if (Math.abs(endX-startX)>50){
-                        float distanceX=endX-startX;
-                        float distanceProgress = playerSeekbar.getMax() * distanceX / v.getWidth();
-                        videoView.seekTo((int) (videoView.getCurrentPosition()+distanceProgress));
-                        playerCurrentPosition.setText(MyUtils.timestampToTime(videoView.getCurrentPosition()));
-                        playerSeekbar.setProgress((int) (videoView.getCurrentPosition()+distanceProgress));
-                        startX=endX;
-                    }
-                    //上下滑动
-                    if (Math.abs(endY-startY)>50){
-                        float distanceY=endY-startY;
-                        if (startX<v.getWidth()/2){
-                            //左边滑动，调节亮度
-                            System.out.println("左边滑动："+distanceY);
-                        }else{
-                            //右边滑动，调节声音
-                            System.out.println("右边滑动："+distanceY);
+                    if (Math.abs(endX-startX)>10){
+                        //左右滑动
+                        if (scrollState!=2){
+                            scrollState=1;
+                            float distanceX=endX-startX;
+                            float distanceProgress = playerSeekbar.getMax() * distanceX / v.getWidth();
+                            videoView.seekTo((int) (videoView.getCurrentPosition()+distanceProgress));
+                            playerCurrentPosition.setText(MyUtils.timestampToTime(videoView.getCurrentPosition()));
+                            playerSeekbar.setProgress((int) (videoView.getCurrentPosition()+distanceProgress));
+                        }
+                    } else if (Math.abs(endY-startY)>10){
+                        //上下滑动
+                        if (scrollState!=1){
+                            scrollState=2;
+                            float distanceY=startY-endY;
+                            if (startX<v.getWidth()/2){
+                                //左边滑动，调节亮度
+
+                            }else{
+                                //右边滑动，调节声音
+
+                            }
                         }
                     }
                     break;
                 case MotionEvent.ACTION_UP:
+                    scrollState=0;
                     handler.removeMessages(MSG_PROGRESS);
                     handler.removeMessages(MSG_AUTO_HIDE_MENU);
                     handler.sendEmptyMessage(MSG_PROGRESS);
                     handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,5000);
+                    handler.sendEmptyMessageDelayed(MSG_HIDE_VLOUMEN,1000);
                     break;
             }
             return false;
@@ -306,12 +369,17 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
             case R.id.player_next:
                 playLocalVideo(currentIndex+1);
                 break;
+            case R.id.player_volume:
+                isMute=!isMute;
+                updateVolumeProgress(isMute,currentVolume);
+                break;
 
         }
     }
 
     /**
      * 显示控制面板
+     * @param isShow true显示 false不显示
      */
     public void showMediaController(boolean isShow){
         if (!isLockScreen){
@@ -345,12 +413,14 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
 
     /**
      * 播放视频
+     * @param index 要播放视频的下标
      */
     public void playLocalVideo(int index){
         if (index==videoList.size()) {
             index=0;
         }
         Media media = videoList.get(index);
+        isNetUri=MyUtils.isNetUri(Uri.parse(media.getData()));
         videoView.setVideoPath(media.getData());
         playerName.setText(media.getDisplay_name());
         currentIndex=index;
@@ -363,8 +433,45 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
         int currentPosition = videoView.getCurrentPosition();
         playerSeekbar.setProgress(currentPosition);
         playerCurrentPosition.setText(MyUtils.timestampToTime(currentPosition));
+        if (isNetUri){
+            int bufferPercentage = videoView.getBufferPercentage();
+            int progress=bufferPercentage*playerSeekbar.getMax()/100;
+            playerSeekbar.setSecondaryProgress(progress);
+        }else{
+            playerSeekbar.setSecondaryProgress(0);
+        }
         handler.removeMessages(MSG_PROGRESS);
         handler.sendEmptyMessageDelayed(MSG_PROGRESS,1000);
+    }
+
+
+    /**
+     * 更新音量进度
+     * @param isMute true静音 false非静音
+     */
+    public void updateVolumeProgress(boolean isMute,int progress){
+        if (isMute||progress==0){
+            playerVolume.setImageResource(R.mipmap.player_volume_off);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,0,0);
+        }else{
+            playerVolume.setImageResource(R.mipmap.player_volume_on);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,progress,0);
+            currentVolume=progress;
+        }
+        handler.removeMessages(MSG_AUTO_HIDE_MENU);
+        handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,5000);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch (keyCode){
+            case KeyEvent.KEYCODE_VOLUME_UP:
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+                currentVolume=audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+                updateVolumeProgress(false,currentVolume);
+                break;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override

@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 
 import java.text.SimpleDateFormat;
@@ -67,4 +68,14 @@ public class MyUtils {
         }
         return true;
     };
+
+    public static boolean isNetUri(Uri uri){
+        if (uri!=null){
+            String uriStr = uri.toString().toLowerCase();
+            if (uriStr.startsWith("http")||uriStr.startsWith("rtsp")||uriStr.startsWith("mms")){
+                return true;
+            }
+        }
+        return false;
+    }
 }

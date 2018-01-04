@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/player_media_controller"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -144,14 +145,14 @@
             android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
             android:gravity="center">
-            <TextView
-                android:id="@+id/player_local"
-                android:padding="10dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFF"
-                android:textSize="15sp"
-                android:text="本地"/>
+            <ImageView
+                android:id="@+id/player_volume"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:onClick="onClick"
+                android:src="@mipmap/player_volume_on"/>
             <TextView
                 android:id="@+id/player_switch"
                 android:padding="10dp"
@@ -171,4 +172,30 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
     </RelativeLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:id="@+id/player_light_value"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:textSize="20sp"
+            android:textColor="#FFF"
+            android:gravity="center"
+            android:visibility="invisible"
+            android:text="50%"
+            />
+        <TextView
+            android:id="@+id/player_volume_value"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:textSize="20sp"
+            android:textColor="#FFF"
+            android:gravity="center"
+            android:visibility="invisible"
+            android:text="50%"
+            />
+    </LinearLayout>
 </RelativeLayout>

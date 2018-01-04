@@ -3,9 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/LantuTV.iml" filepath="$PROJECT_DIR$/LantuTV.iml" />
-      <module fileurl="file://$PROJECT_DIR$/LantuTV.iml" filepath="$PROJECT_DIR$/LantuTV.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/verticalseekbar/verticalseekbar.iml" filepath="$PROJECT_DIR$/verticalseekbar/verticalseekbar.iml" />
     </modules>
   </component>
 </project>
