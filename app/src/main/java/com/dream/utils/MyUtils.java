@@ -3,8 +3,10 @@ package com.dream.utils;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.net.TrafficStats;
 import android.net.Uri;
 import android.os.Build;
 
@@ -77,5 +79,22 @@ public class MyUtils {
             }
         }
         return false;
+    }
+
+    private static long lastTotalRxBytes = 0;
+    private static long lastTimeStamp = 0;
+
+    /**
+     * 获取当前网速
+     * @param context
+     * @return
+     */
+    public static String getNetSpeed(Context context) {
+        long nowTotalRxBytes = TrafficStats.getUidRxBytes(context.getApplicationInfo().uid)==TrafficStats.UNSUPPORTED ? 0 :(TrafficStats.getTotalRxBytes()/1024);
+        long nowTimeStamp = System.currentTimeMillis();
+        long speed = ((nowTotalRxBytes - lastTotalRxBytes) * 1000 / (nowTimeStamp - lastTimeStamp));
+        lastTimeStamp = nowTimeStamp;
+        lastTotalRxBytes = nowTotalRxBytes;
+       return speed+"kb/s";
     }
 }

@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.dream.bean.Media;
+import com.dream.bean.LocalVideo;
 import com.dream.lantutv.R;
 import com.dream.utils.MyUtils;
 
@@ -20,9 +20,9 @@ import java.util.List;
 public class VideoAdapter extends BaseAdapter {
 
     private Context context;
-    private List<Media> list;
+    private List<LocalVideo> list;
 
-    public VideoAdapter(Context context, List<Media> list) {
+    public VideoAdapter(Context context, List<LocalVideo> list) {
         this.context = context;
         this.list = list;
     }
@@ -55,10 +55,10 @@ public class VideoAdapter extends BaseAdapter {
         }else{
             viewHodler= (ViewHodler) convertView.getTag();
         }
-        Media media=list.get(position);
-        viewHodler.name.setText(media.getDisplay_name());
-        viewHodler.time.setText("时长："+MyUtils.timestampToMinute(media.getDuration())+"分钟");
-        viewHodler.size.setText("大小："+ Formatter.formatFileSize(context,media.getSize()));
+        LocalVideo localVideo =list.get(position);
+        viewHodler.name.setText(localVideo.getDisplay_name());
+        viewHodler.time.setText("时长："+MyUtils.timestampToMinute(localVideo.getDuration())+"分钟");
+        viewHodler.size.setText("大小："+ Formatter.formatFileSize(context, localVideo.getSize()));
         return convertView;
     }
 

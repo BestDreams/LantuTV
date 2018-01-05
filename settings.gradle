@@ -1,1 +1,1 @@
-include ':app', ':verticalseekbar'
+include ':app', ':vitamio'

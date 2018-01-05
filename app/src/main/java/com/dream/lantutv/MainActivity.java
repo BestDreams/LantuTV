@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                         getResources().getDrawable(R.mipmap.ic_fifth),
                         Color.parseColor(colors[0]))
                         .selectedIcon(getResources().getDrawable(R.mipmap.ic_sixth))
-                        .title("Media")
+                        .title("LocalVideo")
                         .badgeTitle("one")
                         .build()
         );

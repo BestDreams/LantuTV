@@ -5,7 +5,6 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
@@ -18,12 +17,11 @@ import android.widget.RelativeLayout;
 
 import com.dream.adapter.VideoAdapter;
 import com.dream.base.BaseFragment;
-import com.dream.bean.Media;
+import com.dream.bean.LocalVideo;
 import com.dream.lantutv.R;
 import com.dream.lantutv.SystemVideoPlayer;
 
 import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -74,7 +72,7 @@ public class VideoFragment extends BaseFragment implements AdapterView.OnItemCli
     /**
      * 扫描加载本地视频
      */
-    private ArrayList<Media> list;
+    private ArrayList<LocalVideo> list;
     public void getMediaData(){
         videoLoading.setVisibility(View.VISIBLE);
         handler.postDelayed(new Runnable() {
@@ -102,7 +100,7 @@ public class VideoFragment extends BaseFragment implements AdapterView.OnItemCli
                                 long size=cursor.getLong(3);
                                 String data=cursor.getString(4);
                                 String artist=cursor.getString(5);
-                                list.add(new Media(id,display_name,duration,size,data,artist));
+                                list.add(new LocalVideo(id,display_name,duration,size,data,artist));
                             }
                             cursor.close();
                         }
@@ -117,7 +115,8 @@ public class VideoFragment extends BaseFragment implements AdapterView.OnItemCli
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         //播放网络视频
-        Uri uri=Uri.parse("http://192.168.0.91:8080/Test.mp4");
+        //Uri uri=Uri.parse("http://192.168.0.91:8080/Test.mp4");
+        Uri uri=Uri.parse("http://video.pearvideo.com/head/20170414/cont-1064396-10371532.mp4");
         Intent intent=new Intent(getActivity(),SystemVideoPlayer.class);
         intent.setData(uri);
         startActivity(intent);

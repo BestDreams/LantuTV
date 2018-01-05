@@ -59,12 +59,13 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="100dp"
         android:layout_centerVertical="true">
         <RelativeLayout
             android:layout_width="46dp"
             android:layout_height="46dp"
             android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
             android:layout_marginLeft="10dp"
             android:background="@drawable/player_nav_circle_bg">
             <ImageView
@@ -76,21 +77,40 @@
                 android:layout_centerInParent="true"
                 android:src="@drawable/player_nav_lock_open_selector"/>
         </RelativeLayout>
-        <RelativeLayout
-            android:layout_width="46dp"
-            android:layout_height="46dp"
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_marginRight="10dp"
-            android:background="@drawable/player_nav_circle_bg">
-            <ImageView
-                android:id="@+id/player_screen"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:clickable="true"
-                android:onClick="onClick"
-                android:layout_centerInParent="true"
-                android:src="@drawable/player_nav_screen_selector"/>
+            android:orientation="vertical">
+            <RelativeLayout
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:background="@drawable/player_nav_circle_bg">
+                    <ImageView
+                        android:id="@+id/player_screen"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:clickable="true"
+                        android:onClick="onClick"
+                        android:layout_centerInParent="true"
+                        android:src="@drawable/player_nav_screen_selector"/>
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_marginTop="8dp"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:background="@drawable/player_nav_circle_bg">
+                    <ImageView
+                        android:id="@+id/player_decode"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:clickable="true"
+                        android:onClick="onClick"
+                        android:layout_centerInParent="true"
+                        android:src="@drawable/player_nav_vitamio_selector"/>
         </RelativeLayout>
+        </LinearLayout>
     </RelativeLayout>
 
     <RelativeLayout

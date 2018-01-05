@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,7 +20,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.VideoView;
 
 import com.dream.bean.LocalVideo;
 import com.dream.utils.MyUtils;
@@ -29,8 +27,11 @@ import com.dream.utils.MyUtils;
 import java.util.ArrayList;
 
 import es.dmoral.toasty.MyToast;
+import io.vov.vitamio.MediaPlayer;
+import io.vov.vitamio.Vitamio;
+import io.vov.vitamio.widget.VideoView;
 
-public class SystemVideoPlayer extends Activity implements View.OnClickListener{
+public class VitamioVideoPlayer extends Activity implements View.OnClickListener{
 
     /**
      * 刷新播放进度
@@ -108,7 +109,6 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
     private ImageView playerMenu;
     private ImageView playerLock;
     private ImageView playerScreen;
-    private ImageView playerDecode;
     private ImageView playerPlay;
     private ImageView playerNext;
     private TextView playerTime;
@@ -145,10 +145,10 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Vitamio.isInitialized(this);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_video);
+        setContentView(R.layout.activity_vitamio_video);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        MyToast.init(this,true,false);
         initView();
         initData();
         initListener();
@@ -166,7 +166,6 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
         playerMenu = (ImageView) findViewById(R.id.player_menu);
         playerLock = (ImageView) findViewById(R.id.player_lock);
         playerScreen = (ImageView) findViewById(R.id.player_screen);
-        playerDecode = (ImageView) findViewById(R.id.player_decode);
         playerPlay = (ImageView) findViewById(R.id.player_play);
         playerNext = (ImageView) findViewById(R.id.player_next);
         playerTime = (TextView) findViewById(R.id.player_time);
@@ -254,7 +253,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
 
         @Override
         public void onPrepared(MediaPlayer mp) {
-            int duration = videoView.getDuration();
+            int duration = (int) videoView.getDuration();
             playerSeekbar.setMax(duration);
             playerTime.setText("/"+MyUtils.timestampToTime(duration));
             playerLayout.setClickable(true);
@@ -274,8 +273,16 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
 
         @Override
         public boolean onError(MediaPlayer mp, int what, int extra) {
-            setPlayerData();
-            finish();
+            new AlertDialog.Builder(VitamioVideoPlayer.this)
+                    .setTitle("提示")
+                    .setMessage("无法播放该视频")
+                    .setNegativeButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    })
+                    .show();
             return true;
         }
     }
@@ -287,9 +294,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
 
         @Override
         public void onCompletion(MediaPlayer mp) {
-            if (!isNetUri){
-                playLocalVideo(currentIndex+1);
-            }
+            playLocalVideo(currentIndex+1);
         }
     }
 
@@ -416,9 +421,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
                 MyToast.info("屏幕已锁定，双击解除锁定");
                 break;
             case R.id.player_next:
-                if (!isNetUri){
-                    playLocalVideo(currentIndex+1);
-                }
+                playLocalVideo(currentIndex+1);
                 break;
             case R.id.player_volume:
                 isMute=!isMute;
@@ -426,15 +429,15 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
                 break;
             case R.id.player_decode:
                 handler.removeMessages(MSG_AUTO_HIDE_MENU);
-                new AlertDialog.Builder(SystemVideoPlayer.this)
+                new AlertDialog.Builder(VitamioVideoPlayer.this)
                         .setTitle("提示")
                         .setCancelable(false)
-                        .setMessage("确定是使用第三方解码器？")
+                        .setMessage("确定是使用系统解码器？")
                         .setNegativeButton("确定", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,5000);
-                                setPlayerData();
+                                useSystemPlayer();
                                 finish();
                             }
                         })
@@ -448,17 +451,6 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
                 break;
 
         }
-    }
-
-    public void setPlayerData(){
-        Intent intent=new Intent(SystemVideoPlayer.this,VitamioVideoPlayer.class);
-        if (videoList==null||videoList.size()==0){
-            intent.setData( getIntent().getData());
-        }else{
-            intent.putExtra("videoList",videoList);
-            intent.putExtra("currentIndex",currentIndex);
-        }
-        startActivity(intent);
     }
 
     /**
@@ -514,7 +506,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
      * 更新播放进度
      */
     public void updateProgress(){
-        int currentPosition = videoView.getCurrentPosition();
+        int currentPosition = (int) videoView.getCurrentPosition();
         playerSeekbar.setProgress(currentPosition);
         playerCurrentPosition.setText(MyUtils.timestampToTime(currentPosition));
         if (isNetUri){
@@ -525,6 +517,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
             playerSeekbar.setSecondaryProgress(0);
         }
 
+        System.out.println(currentPosition+" "+preVideoProgress+" "+(currentPosition-preVideoProgress));
         if (!isUseSystemLoading&&videoView.isPlaying()&&isNetUri){
             if (currentPosition-preVideoProgress<100){
                 //视频卡了
@@ -565,8 +558,22 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
      * 刷新当前网速
      */
     public void updateNetSpeed(){
-        currentNetSpeed=MyUtils.getNetSpeed(SystemVideoPlayer.this);
+        currentNetSpeed=MyUtils.getNetSpeed(VitamioVideoPlayer.this);
         videoLoadingText.setText(currentNetSpeed);
+    }
+
+    /**
+     * 使用系统播放器
+     */
+    public void useSystemPlayer(){
+        Intent intent=new Intent(VitamioVideoPlayer.this,SystemVideoPlayer.class);
+        if (videoList==null||videoList.size()==0){
+            intent.setData( getIntent().getData());
+        }else{
+            intent.putExtra("videoList",videoList);
+            intent.putExtra("currentIndex",currentIndex);
+        }
+        startActivity(intent);
     }
 
     @Override
