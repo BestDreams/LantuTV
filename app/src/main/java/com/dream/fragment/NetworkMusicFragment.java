@@ -25,7 +25,7 @@ public class NetworkMusicFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         System.out.println("网络音乐页面初始化");
-        return inflater.inflate(R.layout.fragment_network_music, container, false);
+        return inflater.inflate(R.layout.fragment_netmusic, container, false);
     }
 
 }

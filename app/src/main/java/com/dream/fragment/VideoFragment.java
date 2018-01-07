@@ -116,15 +116,15 @@ public class VideoFragment extends BaseFragment implements AdapterView.OnItemCli
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         //播放网络视频
         //Uri uri=Uri.parse("http://192.168.0.91:8080/Test.mp4");
-        Uri uri=Uri.parse("http://video.pearvideo.com/head/20170414/cont-1064396-10371532.mp4");
-        Intent intent=new Intent(getActivity(),SystemVideoPlayer.class);
-        intent.setData(uri);
-        startActivity(intent);
+//        Uri uri=Uri.parse("http://video.pearvideo.com/head/20170414/cont-1064396-10371532.mp4");
+//        Intent intent=new Intent(getActivity(),SystemVideoPlayer.class);
+//        intent.setData(uri);
+//        startActivity(intent);
 
         //播放本地视频
-//        Intent intent=new Intent(getActivity(),SystemVideoPlayer.class);
-//        intent.putExtra("videoList",list);
-//        intent.putExtra("currentIndex",position);
-//        startActivity(intent);
+        Intent intent=new Intent(getActivity(),SystemVideoPlayer.class);
+        intent.putExtra("videoList",list);
+        intent.putExtra("currentIndex",position);
+        startActivity(intent);
     }
 }

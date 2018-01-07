@@ -35,6 +35,13 @@ public class MyUtils {
     };
 
     /**
+     * 秒钟转分钟
+     */
+    public static String secondToMinute(int ms){
+        return ms/60+":"+ms%60;
+    }
+
+    /**
      * 请求用户授权权限
      */
     public static int REQUEST_CODE=1001;
@@ -71,6 +78,11 @@ public class MyUtils {
         return true;
     };
 
+    /**
+     * 是否网络视频
+     * @param uri
+     * @return
+     */
     public static boolean isNetUri(Uri uri){
         if (uri!=null){
             String uriStr = uri.toString().toLowerCase();
@@ -81,14 +93,13 @@ public class MyUtils {
         return false;
     }
 
-    private static long lastTotalRxBytes = 0;
-    private static long lastTimeStamp = 0;
-
     /**
      * 获取当前网速
      * @param context
      * @return
      */
+    private static long lastTotalRxBytes = 0;
+    private static long lastTimeStamp = 0;
     public static String getNetSpeed(Context context) {
         long nowTotalRxBytes = TrafficStats.getUidRxBytes(context.getApplicationInfo().uid)==TrafficStats.UNSUPPORTED ? 0 :(TrafficStats.getTotalRxBytes()/1024);
         long nowTimeStamp = System.currentTimeMillis();

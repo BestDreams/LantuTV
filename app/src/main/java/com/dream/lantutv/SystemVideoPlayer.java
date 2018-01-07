@@ -225,7 +225,11 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
             if (uri!=null){
                 isNetUri=MyUtils.isNetUri(uri);
                 videoView.setVideoURI(uri);
-                playerName.setText(uri.toString());
+                if (getIntent().getStringExtra("videoName")==null||getIntent().getStringExtra("videoName").equals("")){
+                    playerName.setText(uri.toString());
+                }else{
+                    playerName.setText(getIntent().getStringExtra("videoName"));
+                }
             }
         }else{
             //播放本地视频
@@ -429,7 +433,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
                 new AlertDialog.Builder(SystemVideoPlayer.this)
                         .setTitle("提示")
                         .setCancelable(false)
-                        .setMessage("确定是使用第三方解码器？")
+                        .setMessage("确定使用第三方解码器？")
                         .setNegativeButton("确定", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

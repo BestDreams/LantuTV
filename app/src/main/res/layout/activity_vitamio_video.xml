@@ -24,11 +24,12 @@
         android:layout_height="80dp"
         android:layout_centerInParent="true"
         android:visibility="gone"
-        android:background="#7f7f7f">
+        android:background="@drawable/player_loading_shape">
         <LinearLayout
             android:layout_centerInParent="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
             android:orientation="vertical">
             <com.wang.avi.AVLoadingIndicatorView
                 android:layout_width="wrap_content"
