@@ -2,16 +2,13 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="150dp"
-    android:paddingLeft="5dp"
-    android:paddingRight="5dp"
-    android:paddingBottom="5dp"
-    android:background="@color/colorGray">
+    android:layout_height="200dp"
+    android:paddingBottom="5dp">
 
     <ImageView
         android:id="@+id/netvideo_pic"
         android:layout_width="match_parent"
-        android:layout_height="150dp" />
+        android:layout_height="200dp" />
 
     <TextView
         android:id="@+id/netvideo_name"

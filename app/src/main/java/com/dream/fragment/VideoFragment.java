@@ -40,6 +40,7 @@ public class VideoFragment extends BaseFragment implements AdapterView.OnItemCli
 
     @Override
     public View initView() {
+        System.out.println("初始化本地视频");
         View view = View.inflate(activity,R.layout.fragment_video, null);
         videoListview = (ListView) view.findViewById(R.id.video_listview);
         videoListview.setOnItemClickListener(this);
@@ -114,17 +115,21 @@ public class VideoFragment extends BaseFragment implements AdapterView.OnItemCli
     //视频列表点击事件，播放视频
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        //播放网络视频
-        //Uri uri=Uri.parse("http://192.168.0.91:8080/Test.mp4");
-//        Uri uri=Uri.parse("http://video.pearvideo.com/head/20170414/cont-1064396-10371532.mp4");
-//        Intent intent=new Intent(getActivity(),SystemVideoPlayer.class);
-//        intent.setData(uri);
-//        startActivity(intent);
-
-        //播放本地视频
         Intent intent=new Intent(getActivity(),SystemVideoPlayer.class);
+        //播放本地视频
         intent.putExtra("videoList",list);
         intent.putExtra("currentIndex",position);
+
+        //播放网络视频
+        /*intent.setData(Uri.parse(""));*/
         startActivity(intent);
+
+
+    }
+
+    @Override
+    public void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
+        super.onDestroy();
     }
 }

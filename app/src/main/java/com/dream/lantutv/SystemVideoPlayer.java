@@ -186,28 +186,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
             handler.sendEmptyMessage(MSG_UPDATE_NET_SPEED);
             videoLoading.setVisibility(View.VISIBLE);
         }
-        gestureDetector=new GestureDetector(this,new GestureDetector.SimpleOnGestureListener(){
-
-            @Override
-            public void onLongPress(MotionEvent e) {
-                super.onLongPress(e);
-                playAndPause();
-            }
-
-            @Override
-            public boolean onSingleTapUp(MotionEvent e) {
-                showMediaController(isShowMediaController);
-                return super.onSingleTapUp(e);
-            }
-
-            @Override
-            public boolean onDoubleTap(MotionEvent e) {
-                isLockScreen=false;
-                showMediaController(true);
-                return super.onDoubleTap(e);
-            }
-
-        });
+        gestureDetector=new GestureDetector(this,new MySimpleOnGestureListener());
     }
 
     /**
@@ -341,6 +320,30 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
         }
     }
 
+    /**
+     * 手势识别器监听接口
+     */
+    class MySimpleOnGestureListener extends GestureDetector.SimpleOnGestureListener{
+
+        @Override
+        public void onLongPress(MotionEvent e) {
+            super.onLongPress(e);
+            playAndPause();
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            showMediaController(isShowMediaController);
+            return super.onSingleTapUp(e);
+        }
+
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            isLockScreen=false;
+            showMediaController(true);
+            return super.onDoubleTap(e);
+        }
+    }
 
     /**
      * 触摸事件监听

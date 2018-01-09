@@ -19,7 +19,7 @@ public class MusicFragment extends BaseFragment {
 
     @Override
     public View initView() {
-        System.out.println("音乐页面初始化");
+        System.out.println("初始化本地音乐");
         View view=View.inflate(activity,R.layout.fragment_music,null);
         return view;
     }

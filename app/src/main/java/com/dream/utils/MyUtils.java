@@ -10,6 +10,8 @@ import android.net.TrafficStats;
 import android.net.Uri;
 import android.os.Build;
 
+import org.xutils.http.RequestParams;
+
 import java.text.SimpleDateFormat;
 
 /**
@@ -38,7 +40,7 @@ public class MyUtils {
      * 秒钟转分钟
      */
     public static String secondToMinute(int ms){
-        return ms/60+":"+ms%60;
+        return ((ms/60)<10?("0"+(ms/60)):(ms/60))+":"+((ms%60)<10?("0"+(ms%60)):(ms%60));
     }
 
     /**
@@ -107,5 +109,33 @@ public class MyUtils {
         lastTimeStamp = nowTimeStamp;
         lastTotalRxBytes = nowTotalRxBytes;
        return speed+"kb/s";
+    }
+
+    /**
+     * 得到xUtils带请求头的RequestParam
+     */
+    public static RequestParams getRequestParam(String url){
+        RequestParams requestParams=new RequestParams(url);
+        requestParams.addHeader("X-Channel-Code", "official");
+        requestParams.addHeader("X-Client-Agent", "Xiaomi");
+        requestParams.addHeader("X-Client-Hash", "2f3d6ffkda95dlz2fhju8d3s6dfges3t");
+        requestParams.addHeader("X-Client-ID", "123456789123456");
+        requestParams.addHeader("X-Client-Version", "2.3.2");
+        requestParams.addHeader("X-Long-Token", "");
+        requestParams.addHeader("X-Platform-Type", "0");
+        requestParams.addHeader("X-Platform-Version", "5.0");
+        requestParams.addHeader("X-Serial-Num", "1492140134");
+        requestParams.addHeader("X-User-ID", "");
+        return requestParams;
+    }
+
+    /**
+     * 字符串简化
+     */
+    public static String strToSimple(String oldStr, String regx){
+        if (oldStr.contains(regx)){
+            return oldStr.replace(regx, "");
+        }
+        return oldStr;
     }
 }

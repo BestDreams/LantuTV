@@ -15,7 +15,7 @@ import com.dream.fragment.MusicFragment;
 import com.dream.fragment.NetworkMusicFragment;
 import com.dream.fragment.NetworkVideoFragment;
 import com.dream.fragment.VideoFragment;
-import com.dream.utils.MyUtils;
+import com.dream.view.NoTouchViewPager;
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 import com.mxn.soul.flowingdrawer_core.FlowingDrawer;
 
@@ -78,12 +78,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private NavigationTabBar mainNav;
-    private ViewPager mainViewpager;
+    private NoTouchViewPager mainViewpager;
     private List<NavigationTabBar.Model> models;
     private String[] colors;
     public void initNavigationTabBar(){
-        mainViewpager = (ViewPager) findViewById(R.id.main_viewpager);
-        mainViewpager.setOffscreenPageLimit(3);
+        mainViewpager = (NoTouchViewPager) findViewById(R.id.main_viewpager);
+        mainViewpager.setOffscreenPageLimit(4);
         mainViewpager.setAdapter(new FragmentPageAdapter(getSupportFragmentManager(),fragmentList));
         mainNav = (NavigationTabBar) findViewById(R.id.main_nav);
         colors=getResources().getStringArray(R.array.default_preview);
@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(final int position) {
-                MyToast.info(mainNav.getModels().get(position).getBadgeTitle());
+
             }
 
             @Override

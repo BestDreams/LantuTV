@@ -1,10 +1,8 @@
 package com.dream.utils;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -20,15 +18,13 @@ import java.util.Map;
 
 public class HttpRequest {
 
-    private Context context;
     private RequestQueue requestQueue;
 
     public HttpRequest(Context context) {
-        this.context = context;
+        requestQueue= Volley.newRequestQueue(context);
     }
 
     public void sendRequest(int method, String url, final OnRequestFinish requestFinish){
-        requestQueue= Volley.newRequestQueue(context);
         StringRequest stringRequest=new StringRequest(method, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String s) {
@@ -62,6 +58,10 @@ public class HttpRequest {
     public interface OnRequestFinish{
         void success(String response);
         void error(String error);
+    }
+
+    public void close(){
+        requestQueue.stop();
     }
 
 }
