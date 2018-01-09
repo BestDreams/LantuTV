@@ -13,13 +13,21 @@ import android.os.Build;
 import org.xutils.http.RequestParams;
 
 import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 
 /**
  * Created by Administrator on 2018/1/2.
  */
 
 public class MyUtils {
-    public static SimpleDateFormat simpleDateFormat=new SimpleDateFormat("HH:mm:ss");
+
+    public static SimpleDateFormat simpleDateFormat;
+
+    public static void initSimpleDataFormatTimeZone(){
+        simpleDateFormat=new SimpleDateFormat("HH:mm:ss");
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT+0"));
+    }
+    
     /**
      * 时间戳转分钟
      * @param ms
@@ -137,5 +145,12 @@ public class MyUtils {
             return oldStr.replace(regx, "");
         }
         return oldStr;
+    }
+
+    /**
+     * 文件名去后缀
+     */
+    public static String fileNameRemoveSuffix(String fileName){
+        return fileName.substring(0,fileName.lastIndexOf("."));
     }
 }

@@ -36,4 +36,6 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile project(':vitamio')
     compile 'org.xutils:xutils:3.5.0'
+    compile 'com.github.mcxtzhang:SwipeDelMenuLayout:V1.3.0'
+    compile 'com.github.mcxtzhang:all-base-adapter:V1.5.2'
 }

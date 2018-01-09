@@ -1,34 +1,45 @@
 package com.dream.fragment;
 
 
+import android.app.AlertDialog;
 import android.content.ContentResolver;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.text.format.Formatter;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
-import com.dream.adapter.VideoAdapter;
 import com.dream.base.BaseFragment;
 import com.dream.bean.LocalVideo;
 import com.dream.lantutv.R;
 import com.dream.lantutv.SystemVideoPlayer;
+import com.dream.utils.MyUtils;
+import com.mcxtzhang.commonadapter.lvgv.CommonAdapter;
+import com.mcxtzhang.commonadapter.lvgv.ViewHolder;
+import com.mcxtzhang.swipemenulib.SwipeMenuLayout;
 
+import java.io.File;
 import java.util.ArrayList;
+
+import es.dmoral.toasty.MyToast;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
 
-public class VideoFragment extends BaseFragment implements AdapterView.OnItemClickListener {
+public class VideoFragment extends BaseFragment{
 
 
     public VideoFragment() {
@@ -43,7 +54,6 @@ public class VideoFragment extends BaseFragment implements AdapterView.OnItemCli
         System.out.println("初始化本地视频");
         View view = View.inflate(activity,R.layout.fragment_video, null);
         videoListview = (ListView) view.findViewById(R.id.video_listview);
-        videoListview.setOnItemClickListener(this);
         videoLoading = (RelativeLayout) view.findViewById(R.id.video_loading);
         videoEmpty = (LinearLayout) view.findViewById(R.id.video_empty);
         initData();
@@ -65,10 +75,46 @@ public class VideoFragment extends BaseFragment implements AdapterView.OnItemCli
             }else{
                 videoEmpty.setVisibility(View.GONE);
                 videoListview.setVisibility(View.VISIBLE);
-                videoListview.setAdapter(new VideoAdapter(activity,list));
+                setupSwipMenuAdapter();
             }
         }
     };
+
+    /**
+     * 侧滑删除适配器
+     */
+    private CommonAdapter commonAdapter;
+    public void setupSwipMenuAdapter(){
+        commonAdapter=new CommonAdapter(getActivity(),list,R.layout.video_listview_item){
+
+            @Override
+            public void convert(final ViewHolder viewHolder, Object o, final int position) {
+                LocalVideo localVideo= (LocalVideo) o;
+                viewHolder.setText(R.id.video_name,MyUtils.fileNameRemoveSuffix(localVideo.getDisplay_name()));
+                viewHolder.setText(R.id.video_time,"时长："+ MyUtils.timestampToMinute(localVideo.getDuration())+"分钟");
+                viewHolder.setText(R.id.video_size,"大小："+ Formatter.formatFileSize(getActivity(), localVideo.getSize()));
+                viewHolder.setOnClickListener(R.id.video_content, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        startPlayer(position);
+                    }
+                });
+                viewHolder.setOnClickListener(R.id.video_del, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        deleteItem(position,(SwipeMenuLayout) viewHolder.getConvertView());
+                    }
+                });
+                viewHolder.setOnClickListener(R.id.video_info, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        showVideoInfo(list.get(position));
+                    }
+                });
+            }
+        };
+        videoListview.setAdapter(commonAdapter);
+    }
 
     /**
      * 扫描加载本地视频
@@ -112,20 +158,77 @@ public class VideoFragment extends BaseFragment implements AdapterView.OnItemCli
         },1000);
     }
 
+
     //视频列表点击事件，播放视频
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    public void startPlayer(int position){
         Intent intent=new Intent(getActivity(),SystemVideoPlayer.class);
         //播放本地视频
         intent.putExtra("videoList",list);
         intent.putExtra("currentIndex",position);
-
         //播放网络视频
         /*intent.setData(Uri.parse(""));*/
         startActivity(intent);
-
-
     }
+
+    public void deleteItem(final int position, final SwipeMenuLayout menu){
+        new AlertDialog.Builder(getActivity())
+                .setTitle("提示")
+                .setMessage("确定要删除吗？"+"\n"+list.get(position).getDisplay_name())
+                .setNegativeButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String delResult = deleteFile(list.get(position).getData());
+                        if (delResult.equals("successful")){
+                            MyToast.success("删除成功");
+                            menu.quickClose();
+                            list.remove(position);
+                            commonAdapter.notifyDataSetChanged();
+                        }else{
+                            MyToast.warn(delResult);
+                        }
+                    }
+                })
+                .setPositiveButton("取消",null)
+                .show();
+    }
+
+    /**
+     * 删除文件
+     */
+    public String deleteFile(String path){
+        File file=new File(path);
+        if (file.isFile()){
+            if (file.exists()){
+                if (file.delete()){
+                    getActivity().getContentResolver().delete(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, MediaStore.Audio.Media.DATA + "= \"" + file.getPath() + "\"", null);
+                    return "successful";
+                }else{
+                    return "删除失败，未知错误";
+                }
+            }else{
+                return "文件不存在";
+            }
+        }
+        return "删除失败，不是文件";
+    }
+
+    /**
+     * 显示视频属性
+     */
+    public void showVideoInfo(LocalVideo video){
+        new AlertDialog.Builder(getActivity())
+                .setTitle("属性")
+                .setMessage(
+                        "名称："+MyUtils.fileNameRemoveSuffix(video.getDisplay_name())+"\n\n"+
+                        "时长："+MyUtils.timestampToTime(video.getDuration())+"分钟\n\n"+
+                        "大小："+Formatter.formatFileSize(getActivity(),video.getSize())+"\n\n"+
+                        "格式："+video.getDisplay_name().substring(video.getDisplay_name().lastIndexOf(".")+1)+"\n\n"+
+                        "路径："+video.getData()
+                )
+                .setPositiveButton("确定",null)
+                .show();
+    }
+
 
     @Override
     public void onDestroy() {

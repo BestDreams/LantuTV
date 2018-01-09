@@ -20,8 +20,8 @@ import com.dream.base.BaseFragment;
 import com.dream.bean.NetVideo;
 import com.dream.lantutv.R;
 import com.dream.lantutv.SystemVideoPlayer;
+import com.dream.utils.Config;
 import com.dream.utils.HttpRequest;
-import com.dream.view.NoTouchViewPager;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -40,9 +40,6 @@ public class NetworkVideoFragment extends BaseFragment {
 
 
     private static final int MSG_SHOW_LIST = 0;
-    private static final int MSG_SHOW_TAB = 1;
-    private String url_single_id="http://app.pearvideo.com/clt/jsp/v2/content.jsp?contId=";
-    private String url_home="http://app.pearvideo.com/clt/jsp/v2/home.jsp?lastLikeIds=1063871%2C1063985%2C1064069%2C1064123%2C1064078%2C1064186%2C1062372%2C1064164%2C1064081%2C1064176%2C1064070%2C1064019";
 
     /**
      * Http请求类
@@ -82,8 +79,8 @@ public class NetworkVideoFragment extends BaseFragment {
         netVideoViewPager.setVisibility(View.GONE);
         netvideoLoading.setVisibility(View.VISIBLE);
         MyToast.init(getActivity(),true,false);
-        initData();
-        initListener();
+        //initData();
+        //initListener();
         return view;
     }
 
@@ -150,7 +147,7 @@ public class NetworkVideoFragment extends BaseFragment {
      */
     public void getToutiaoList(){
         netVideoNodeMap=new HashMap<>();
-        httpRequest.sendRequest(Request.Method.GET, url_home, new HttpRequest.OnRequestFinish() {
+        httpRequest.sendRequest(Request.Method.GET, Config.CONFIG_URL_HOME, new HttpRequest.OnRequestFinish() {
             @Override
             public void success(String response) {
                 try {
@@ -224,7 +221,7 @@ public class NetworkVideoFragment extends BaseFragment {
      * @param contId
      */
     public void getVideoById(final int total, final int index, final String nodeName, String contId){
-        httpRequest.sendRequest(Request.Method.GET, url_single_id + contId, new HttpRequest.OnRequestFinish() {
+        httpRequest.sendRequest(Request.Method.GET, Config.CONFIG_URL_SINGLE_ID + contId, new HttpRequest.OnRequestFinish() {
             @Override
             public void success(String response) {
                 NetVideo standardVideoByJson = getStandardVideoByJson(response);
@@ -288,8 +285,12 @@ public class NetworkVideoFragment extends BaseFragment {
 
     @Override
     public void onDestroy() {
-        httpRequest.close();
-        handler.removeCallbacksAndMessages(null);
+        if (httpRequest!=null){
+            httpRequest.close();
+        }
+        if (handler!=null){
+            handler.removeCallbacksAndMessages(null);
+        }
         super.onDestroy();
     }
 }

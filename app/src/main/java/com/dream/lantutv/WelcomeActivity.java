@@ -17,6 +17,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.dream.utils.Config;
 import com.dream.utils.MyUtils;
 
 import es.dmoral.toasty.MyToast;
@@ -85,6 +86,6 @@ public class WelcomeActivity extends Activity {
                 startActivity(new Intent(getApplicationContext(),MainActivity.class));
                 finish();
             }
-        },1000);
+        }, Config.CONFIG_TIME_TO_MAIN);
     }
 }

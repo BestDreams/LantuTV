@@ -22,6 +22,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.dream.bean.LocalVideo;
+import com.dream.utils.Config;
 import com.dream.utils.MyUtils;
 
 import java.util.ArrayList;
@@ -136,7 +137,7 @@ public class VitamioVideoPlayer extends Activity implements View.OnClickListener
                 case MSG_UPDATE_NET_SPEED:
                     updateNetSpeed();
                     handler.removeMessages(MSG_UPDATE_NET_SPEED);
-                    handler.sendEmptyMessageDelayed(MSG_UPDATE_NET_SPEED,1000);
+                    handler.sendEmptyMessageDelayed(MSG_UPDATE_NET_SPEED, Config.CONFIG_TIME_UPDATE_NETSPEED);
                     break;
             }
         }
@@ -244,7 +245,7 @@ public class VitamioVideoPlayer extends Activity implements View.OnClickListener
             videoLoading.setVisibility(View.GONE);
             handler.removeMessages(MSG_UPDATE_NET_SPEED);
             handler.sendEmptyMessage(MSG_PROGRESS);
-            handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,5000);
+            handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,Config.CONFIG_TIME_HIDE_MENU);
             videoView.start();
         }
     }
@@ -277,7 +278,9 @@ public class VitamioVideoPlayer extends Activity implements View.OnClickListener
 
         @Override
         public void onCompletion(MediaPlayer mp) {
-            playLocalVideo(currentIndex+1);
+            if (!isNetUri&&currentIndex!=videoList.size()-1){
+                playLocalVideo(currentIndex+1);
+            }
         }
     }
 
@@ -300,7 +303,7 @@ public class VitamioVideoPlayer extends Activity implements View.OnClickListener
 
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
-            handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,5000);
+            handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,Config.CONFIG_TIME_HIDE_MENU);
         }
     }
 
@@ -405,8 +408,7 @@ public class VitamioVideoPlayer extends Activity implements View.OnClickListener
                     handler.removeMessages(MSG_PROGRESS);
                     handler.removeMessages(MSG_AUTO_HIDE_MENU);
                     handler.sendEmptyMessage(MSG_PROGRESS);
-                    handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,5000);
-                    handler.sendEmptyMessageDelayed(MSG_HIDE_VLOUMEN,1000);
+                    handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,Config.CONFIG_TIME_HIDE_MENU);
                     break;
             }
             return false;
@@ -443,7 +445,7 @@ public class VitamioVideoPlayer extends Activity implements View.OnClickListener
                         .setNegativeButton("确定", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,5000);
+                                handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,Config.CONFIG_TIME_HIDE_MENU);
                                 useSystemPlayer();
                                 finish();
                             }
@@ -451,7 +453,7 @@ public class VitamioVideoPlayer extends Activity implements View.OnClickListener
                         .setPositiveButton("取消", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,5000);
+                                handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,Config.CONFIG_TIME_HIDE_MENU);
                             }
                         })
                         .show();
@@ -470,7 +472,7 @@ public class VitamioVideoPlayer extends Activity implements View.OnClickListener
                 playerMediaController.setVisibility(View.VISIBLE);
                 playerLayout.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
                 handler.removeMessages(MSG_AUTO_HIDE_MENU);
-                handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,5000);
+                handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,Config.CONFIG_TIME_HIDE_MENU);
             }else{
                 playerMediaController.setVisibility(View.GONE);
                 playerLayout.setSystemUiVisibility(View.INVISIBLE);
@@ -491,7 +493,7 @@ public class VitamioVideoPlayer extends Activity implements View.OnClickListener
             playerPlay.setImageResource(R.mipmap.player_nav_pasue);
         }
         handler.removeMessages(MSG_AUTO_HIDE_MENU);
-        handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,5000);
+        handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,Config.CONFIG_TIME_HIDE_MENU);
     }
 
     /**
@@ -540,7 +542,7 @@ public class VitamioVideoPlayer extends Activity implements View.OnClickListener
         preVideoProgress=currentPosition;
 
         handler.removeMessages(MSG_PROGRESS);
-        handler.sendEmptyMessageDelayed(MSG_PROGRESS,1000);
+        handler.sendEmptyMessageDelayed(MSG_PROGRESS,Config.CONFIG_TIME_UPDATE_PROGRESS);
     }
 
 
@@ -558,7 +560,7 @@ public class VitamioVideoPlayer extends Activity implements View.OnClickListener
             currentVolume=progress;
         }
         handler.removeMessages(MSG_AUTO_HIDE_MENU);
-        handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,5000);
+        handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,Config.CONFIG_TIME_HIDE_MENU);
     }
 
     /**

@@ -15,6 +15,7 @@ import com.dream.fragment.MusicFragment;
 import com.dream.fragment.NetworkMusicFragment;
 import com.dream.fragment.NetworkVideoFragment;
 import com.dream.fragment.VideoFragment;
+import com.dream.utils.Config;
 import com.dream.view.NoTouchViewPager;
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 import com.mxn.soul.flowingdrawer_core.FlowingDrawer;
@@ -33,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getSupportActionBar().hide();
-        getWindow().setStatusBarColor(Color.parseColor("#4b405c"));
+        getWindow().setStatusBarColor(Color.parseColor(Config.CONFIG_COLOR_THEME));
         MyToast.init(this,true,false);
         initFragment();
         initNavigationTabBar();
