@@ -453,6 +453,9 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
                         })
                         .show();
                 break;
+            case R.id.player_switch:
+
+                break;
 
         }
     }

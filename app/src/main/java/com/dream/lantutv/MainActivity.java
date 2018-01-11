@@ -35,7 +35,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getSupportActionBar().hide();
         getWindow().setStatusBarColor(Color.parseColor(Config.CONFIG_COLOR_THEME));
-        MyToast.init(this,true,false);
         initFragment();
         initNavigationTabBar();
         initDrawer();

@@ -10,6 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.dream.bean.LocalVideo;
 import com.dream.bean.NetVideo;
 import com.dream.lantutv.R;
@@ -64,7 +65,7 @@ public class NetVideoListviewAdapter extends BaseAdapter {
         }
         NetVideo netVideo =list.get(position);
         if (netVideo!=null){
-            x.image().bind(viewHodler.pic,netVideo.getPic());
+            Glide.with(context).load(netVideo.getPic()).into(viewHodler.pic);
             viewHodler.name.setText(netVideo.getName());
             viewHodler.times.setText(netVideo.getPraiseTimes()+"次播放");
             viewHodler.duration.setText(MyUtils.secondToMinute(Integer.parseInt(netVideo.getDuration())));

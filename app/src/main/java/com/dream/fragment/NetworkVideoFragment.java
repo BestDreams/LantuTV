@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 
@@ -68,6 +69,8 @@ public class NetworkVideoFragment extends BaseFragment {
     private TabLayout netvideoTablayout;
     private RelativeLayout netvideoLoading;
     private ViewPager netVideoViewPager;
+    private LinearLayout netvideoUi;
+
     @Override
     public View initView() {
         System.out.println("初始化网络视频");
@@ -76,11 +79,12 @@ public class NetworkVideoFragment extends BaseFragment {
         netvideoTablayout.setTabMode(TabLayout.MODE_SCROLLABLE);
         netvideoLoading = (RelativeLayout) view.findViewById(R.id.netvideo_loading);
         netVideoViewPager = (ViewPager) view.findViewById(R.id.netVideoViewPager);
-        netVideoViewPager.setVisibility(View.GONE);
+        netvideoUi = (LinearLayout) view.findViewById(R.id.netvideo_ui);
+        netvideoUi.setVisibility(View.GONE);
         netvideoLoading.setVisibility(View.VISIBLE);
         MyToast.init(getActivity(),true,false);
-        //initData();
-        //initListener();
+        initData();
+        initListener();
         return view;
     }
 
@@ -265,7 +269,7 @@ public class NetworkVideoFragment extends BaseFragment {
      * 填充界面
      */
     public void inputUI(){
-        netVideoViewPager.setVisibility(View.VISIBLE);
+        netvideoUi.setVisibility(View.VISIBLE);
         netvideoLoading.setVisibility(View.GONE);
         pagerTitleList.clear();
         for(Map.Entry<String,List<NetVideo>> entry : netVideoNodeMap.entrySet()){

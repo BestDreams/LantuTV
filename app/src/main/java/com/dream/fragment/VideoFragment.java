@@ -28,6 +28,7 @@ import com.dream.utils.MyUtils;
 import com.mcxtzhang.commonadapter.lvgv.CommonAdapter;
 import com.mcxtzhang.commonadapter.lvgv.ViewHolder;
 import com.mcxtzhang.swipemenulib.SwipeMenuLayout;
+import com.yalantis.phoenix.PullToRefreshView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ public class VideoFragment extends BaseFragment{
     private ListView videoListview;
     private RelativeLayout videoLoading;
     private LinearLayout videoEmpty;
+    private PullToRefreshView videoPullToRefresh;
 
     @Override
     public View initView() {
@@ -56,13 +58,26 @@ public class VideoFragment extends BaseFragment{
         videoListview = (ListView) view.findViewById(R.id.video_listview);
         videoLoading = (RelativeLayout) view.findViewById(R.id.video_loading);
         videoEmpty = (LinearLayout) view.findViewById(R.id.video_empty);
+        videoPullToRefresh = (PullToRefreshView) view.findViewById(R.id.video_pullToRefresh);
+        videoPullToRefresh.setOnRefreshListener(new PullToRefreshView.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                videoPullToRefresh.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        getMediaData(false);
+                        videoPullToRefresh.setRefreshing(false);
+                    }
+                },2000);
+            }
+        });
         initData();
         return view;
     }
 
     @Override
     public void initData() {
-        getMediaData();
+        getMediaData(true);
     }
 
     private Handler handler=new Handler(){
@@ -120,8 +135,12 @@ public class VideoFragment extends BaseFragment{
      * 扫描加载本地视频
      */
     private ArrayList<LocalVideo> list;
-    public void getMediaData(){
-        videoLoading.setVisibility(View.VISIBLE);
+    public void getMediaData(boolean isShowLoading){
+        int delayed=0;
+        if (isShowLoading){
+            delayed=1000;
+            videoLoading.setVisibility(View.VISIBLE);
+        }
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -155,7 +174,7 @@ public class VideoFragment extends BaseFragment{
                     }
                 }).start();
             }
-        },1000);
+        },delayed);
     }
 
 
@@ -179,7 +198,7 @@ public class VideoFragment extends BaseFragment{
                     public void onClick(DialogInterface dialog, int which) {
                         String delResult = deleteFile(list.get(position).getData());
                         if (delResult.equals("successful")){
-                            MyToast.success("删除成功");
+                            MyToast.info("删除成功");
                             menu.quickClose();
                             list.remove(position);
                             commonAdapter.notifyDataSetChanged();
