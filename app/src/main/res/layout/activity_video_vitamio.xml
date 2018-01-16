@@ -10,20 +10,20 @@
     android:background="#000"
     tools:context="com.dream.lantutv.SystemVideoPlayer">
 
-    <VideoView
+    <io.vov.vitamio.widget.VideoView
         android:id="@+id/video_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerInParent="true"/>
 
-    <include layout="@layout/video_media_controller" />
+    <include layout="@layout/video_media_controller"/>
 
     <RelativeLayout
         android:id="@+id/video_loading"
         android:layout_width="150dp"
         android:layout_height="80dp"
-        android:visibility="visible"
         android:layout_centerInParent="true"
+        android:visibility="gone"
         android:background="@drawable/player_loading_shape">
         <LinearLayout
             android:layout_centerInParent="true"

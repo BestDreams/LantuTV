@@ -2,6 +2,7 @@ package com.dream.adapter;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.text.format.Formatter;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.ViewTarget;
 import com.dream.bean.LocalVideo;
 import com.dream.bean.NetVideo;
 import com.dream.lantutv.R;
@@ -65,7 +67,12 @@ public class NetVideoListviewAdapter extends BaseAdapter {
         }
         NetVideo netVideo =list.get(position);
         if (netVideo!=null){
-            Glide.with(context).load(netVideo.getPic()).into(viewHodler.pic);
+            Glide.with(context)
+                    .load(netVideo.getPic())
+                    .placeholder(R.mipmap.ic_launcher)
+                    .error(R.mipmap.ic_launcher)
+                    .centerCrop()
+                    .into(viewHodler.pic);
             viewHodler.name.setText(netVideo.getName());
             viewHodler.times.setText(netVideo.getPraiseTimes()+"次播放");
             viewHodler.duration.setText(MyUtils.secondToMinute(Integer.parseInt(netVideo.getDuration())));

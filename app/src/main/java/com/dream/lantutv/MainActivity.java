@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -15,7 +16,6 @@ import com.dream.fragment.MusicFragment;
 import com.dream.fragment.NetworkMusicFragment;
 import com.dream.fragment.NetworkVideoFragment;
 import com.dream.fragment.VideoFragment;
-import com.dream.utils.Config;
 import com.dream.view.NoTouchViewPager;
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 import com.mxn.soul.flowingdrawer_core.FlowingDrawer;
@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import devlight.io.library.ntb.NavigationTabBar;
-import es.dmoral.toasty.MyToast;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -33,8 +32,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getSupportActionBar().hide();
-        getWindow().setStatusBarColor(Color.parseColor(Config.CONFIG_COLOR_THEME));
         initFragment();
         initNavigationTabBar();
         initDrawer();
@@ -93,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
                         getResources().getDrawable(R.mipmap.ic_fifth),
                         Color.parseColor(colors[0]))
                         .selectedIcon(getResources().getDrawable(R.mipmap.ic_sixth))
-                        .title("LocalVideo")
+                        .title("视频")
                         .badgeTitle("one")
                         .build()
         );
@@ -102,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
                         getResources().getDrawable(R.mipmap.ic_second),
                         Color.parseColor(colors[1]))
                         .selectedIcon(getResources().getDrawable(R.mipmap.ic_eighth))
-                        .title("Music")
+                        .title("音乐")
                         .badgeTitle("two")
                         .build()
         );
@@ -111,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                         getResources().getDrawable(R.mipmap.ic_third),
                         Color.parseColor(colors[2]))
                         .selectedIcon(getResources().getDrawable(R.mipmap.ic_seventh))
-                        .title("NetWorkVideo")
+                        .title("抖音")
                         .badgeTitle("three")
                         .build()
         );
@@ -120,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
                         getResources().getDrawable(R.mipmap.ic_fourth),
                         Color.parseColor(colors[3]))
                         .selectedIcon(getResources().getDrawable(R.mipmap.ic_eighth))
-                        .title("NetWorkMusic")
+                        .title("酷狗")
                         .badgeTitle("four")
                         .build()
         );

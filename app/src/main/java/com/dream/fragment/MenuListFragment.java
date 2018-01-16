@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.dream.lantutv.R;
@@ -29,7 +28,7 @@ public class MenuListFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_menu, container,
+        View view = inflater.inflate(R.layout.drawer_menu, container,
                 false);
         NavigationView vNavigation = (NavigationView) view.findViewById(R.id.vNavigation);
         vNavigation.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {

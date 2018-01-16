@@ -1,7 +1,9 @@
 package com.dream.fragment;
 
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
@@ -13,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.dream.adapter.NetVideoListviewAdapter;
@@ -23,6 +26,7 @@ import com.dream.lantutv.R;
 import com.dream.lantutv.SystemVideoPlayer;
 import com.dream.utils.Config;
 import com.dream.utils.HttpRequest;
+import com.dream.utils.MyUtils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -41,6 +45,10 @@ public class NetworkVideoFragment extends BaseFragment {
 
 
     private static final int MSG_SHOW_LIST = 0;
+    private static final int MSG_ERROR_NET = 1;
+    private static final int MSG_ERROR_DATA = 2;
+    private static final int MSG_ERROR_EMPTY = 3;
+    private static final String STR_NETVIDEO_CACHE = "netvideoCache";
 
     /**
      * Http请求类
@@ -62,6 +70,13 @@ public class NetworkVideoFragment extends BaseFragment {
      * 页面标题集合
      */
     private List<String> pagerTitleList;
+    /**
+     * 是否是缓存数据
+     */
+    private boolean isCacheData=false;
+
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
 
     public NetworkVideoFragment() {
     }
@@ -70,6 +85,8 @@ public class NetworkVideoFragment extends BaseFragment {
     private RelativeLayout netvideoLoading;
     private ViewPager netVideoViewPager;
     private LinearLayout netvideoUi;
+    private RelativeLayout netvideoError;
+    private TextView netvideoErrorInfo;
 
     @Override
     public View initView() {
@@ -80,9 +97,10 @@ public class NetworkVideoFragment extends BaseFragment {
         netvideoLoading = (RelativeLayout) view.findViewById(R.id.netvideo_loading);
         netVideoViewPager = (ViewPager) view.findViewById(R.id.netVideoViewPager);
         netvideoUi = (LinearLayout) view.findViewById(R.id.netvideo_ui);
+        netvideoError = (RelativeLayout) view.findViewById(R.id.netvideo_error);
+        netvideoErrorInfo = (TextView) view.findViewById(R.id.netvideo_error_info);
         netvideoUi.setVisibility(View.GONE);
         netvideoLoading.setVisibility(View.VISIBLE);
-        MyToast.init(getActivity(),true,false);
         initData();
         initListener();
         return view;
@@ -90,6 +108,8 @@ public class NetworkVideoFragment extends BaseFragment {
 
     @Override
     public void initData() {
+        sharedPreferences = getActivity().getSharedPreferences("app", Context.MODE_PRIVATE);
+        editor=sharedPreferences.edit();
         httpRequest=new HttpRequest(getActivity());
         netVideoViewList=new ArrayList<>();
         pagerTitleList=new ArrayList<>();
@@ -129,7 +149,11 @@ public class NetworkVideoFragment extends BaseFragment {
         netVideoListview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                setPlayerDataSource(netVideoNodeMap.get(currNodeName).get(position));
+                if (isCacheData){
+                    MyToast.warn("请连接网络后重试");
+                }else{
+                    setPlayerDataSource(netVideoNodeMap.get(currNodeName).get(position));
+                }
             }
         });
         return view;
@@ -140,7 +164,18 @@ public class NetworkVideoFragment extends BaseFragment {
         public void handleMessage(Message msg) {
             switch (msg.what){
                 case MSG_SHOW_LIST:
+                    //数据缓存
+                    editor.putString(STR_NETVIDEO_CACHE,MyUtils.mapToString(netVideoNodeMap)).commit();
                     inputUI();
+                    break;
+                case MSG_ERROR_DATA:
+                    requestDataException("解析失败");
+                    break;
+                case MSG_ERROR_NET:
+                    requestDataException("网络错误");
+                    break;
+                case MSG_ERROR_EMPTY:
+                    requestDataException("数据异常");
                     break;
             }
         }
@@ -155,6 +190,7 @@ public class NetworkVideoFragment extends BaseFragment {
             @Override
             public void success(String response) {
                 try {
+                    System.out.println(response);
                     JSONObject jsonObject=new JSONObject(response);
                     String resultCode = jsonObject.getString("resultCode");
                     if (resultCode.equals("1")){
@@ -195,19 +231,36 @@ public class NetworkVideoFragment extends BaseFragment {
                             }
                         }
                     }else{
-                        MyToast.warn("服务器异常，请重试");
+                        handler.sendEmptyMessage(MSG_ERROR_EMPTY);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    handler.sendEmptyMessage(MSG_ERROR_DATA);
                 }
             }
 
             @Override
             public void error(String error) {
-                System.out.println(error);
-                MyToast.warn("拉取数据失败，请重试");
+                String cache = sharedPreferences.getString(STR_NETVIDEO_CACHE, "");
+                if (!cache.equals("")){
+                    isCacheData=true;
+                    netVideoNodeMap=MyUtils.stringToMap(cache);;
+                    inputUI();
+                }else{
+                    handler.sendEmptyMessage(MSG_ERROR_NET);
+                }
             }
         });
+    }
+
+    /**
+     * 获取数据异常处理
+     */
+    public void requestDataException(String info){
+        netvideoLoading.setVisibility(View.GONE);
+        netvideoUi.setVisibility(View.GONE);
+        netvideoError.setVisibility(View.VISIBLE);
+        netvideoErrorInfo.setText(info);
     }
 
     /**
@@ -281,6 +334,11 @@ public class NetworkVideoFragment extends BaseFragment {
     }
 
 
+    /**
+     * 判断请求数据是否完成
+     * @param total 总数据量
+     * @param index 当前位置
+     */
     public void onUriDataLoadingFinsh(int total,int index){
         if (index==total){
             handler.sendEmptyMessage(MSG_SHOW_LIST);

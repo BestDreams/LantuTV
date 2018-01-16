@@ -9,10 +9,20 @@ import android.content.pm.PackageManager;
 import android.net.TrafficStats;
 import android.net.Uri;
 import android.os.Build;
+import android.util.Base64;
+
+import com.dream.bean.NetVideo;
 
 import org.xutils.http.RequestParams;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 /**
@@ -152,5 +162,44 @@ public class MyUtils {
      */
     public static String fileNameRemoveSuffix(String fileName){
         return fileName.substring(0,fileName.lastIndexOf("."));
+    }
+
+    /**
+     * 网络视频数据对象转字符串缓存
+     */
+    public static String mapToString(Map map){
+        String result=null;
+        try {
+            ByteArrayOutputStream byteArrayOutputStream=new ByteArrayOutputStream();
+            ObjectOutputStream objectOutputStream=new ObjectOutputStream(byteArrayOutputStream);
+            objectOutputStream.writeObject(map);
+            result=new String(Base64.encode(byteArrayOutputStream.toByteArray(),Base64.DEFAULT));
+            byteArrayOutputStream.close();
+            objectOutputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    /**
+     * 字符串缓存转网络视频数据对象
+     * @param objectString
+     * @return
+     */
+    public static Map<String,List<NetVideo>> stringToMap(String objectString) {
+        Map<String,List<NetVideo>> netVideoNodeMap=null;
+        try {
+            byte[] bytes = Base64.decode(objectString.getBytes(), Base64.DEFAULT);
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+            ObjectInputStream objectInputStream = null;
+            objectInputStream = new ObjectInputStream(byteArrayInputStream);
+            netVideoNodeMap = (Map<String,List<NetVideo>>) objectInputStream.readObject();
+            byteArrayInputStream.close();
+            objectInputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return netVideoNodeMap;
     }
 }

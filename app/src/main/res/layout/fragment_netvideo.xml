@@ -5,53 +5,79 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.dream.fragment.NetworkVideoFragment">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
-        <android.support.design.widget.TabLayout
-            android:id="@+id/netvideo_tablayout"
+        <LinearLayout
+            android:id="@+id/netvideo_ui"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:background="@color/colorGray"
-            app:tabTextColor="#FFF"
-            app:tabIndicatorColor="#76afcf"
-            app:tabSelectedTextColor="#76afcf"
-            ></android.support.design.widget.TabLayout>
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        <android.support.v4.view.ViewPager
-            android:id="@+id/netVideoViewPager"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"></android.support.v4.view.ViewPager>
+            <android.support.design.widget.TabLayout
+                android:id="@+id/netvideo_tablayout"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@color/colorGray"
+                app:tabTextColor="#FFF"
+                app:tabIndicatorColor="#76afcf"
+                app:tabSelectedTextColor="#76afcf"
+                ></android.support.design.widget.TabLayout>
+
+            <android.support.v4.view.ViewPager
+                android:id="@+id/netVideoViewPager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"></android.support.v4.view.ViewPager>
+        </LinearLayout>
 
         <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <RelativeLayout
-                android:id="@+id/netvideo_loading"
-                android:layout_width="120dp"
-                android:layout_height="80dp"
-                android:visibility="gone"
+            android:id="@+id/netvideo_loading"
+            android:layout_width="120dp"
+            android:layout_height="80dp"
+            android:visibility="gone"
+            android:layout_centerInParent="true"
+            android:background="@drawable/video_loading_shape">
+            <LinearLayout
                 android:layout_centerInParent="true"
-                android:background="@drawable/video_loading_shape">
-                <LinearLayout
-                    android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <com.wang.avi.AVLoadingIndicatorView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
-                    <com.wang.avi.AVLoadingIndicatorView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:indicatorName="PacmanIndicator"
-                        />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="#FFF"
-                        android:text="Loading"/>
-                </LinearLayout>
-            </RelativeLayout>
+                    app:indicatorName="PacmanIndicator"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFF"
+                    android:text="Loading"/>
+            </LinearLayout>
         </RelativeLayout>
-    </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/netvideo_error"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+            <LinearLayout
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@mipmap/video_empty"/>
+                <TextView
+                    android:id="@+id/netvideo_error_info"
+                    android:layout_marginTop="10dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#7f7f7f" />
+            </LinearLayout>
+        </RelativeLayout>
+    </RelativeLayout>
 </FrameLayout>

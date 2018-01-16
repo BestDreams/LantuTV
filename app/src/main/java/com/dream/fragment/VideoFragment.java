@@ -6,19 +6,15 @@ import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.text.format.Formatter;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.dream.base.BaseFragment;
 import com.dream.bean.LocalVideo;
@@ -54,7 +50,7 @@ public class VideoFragment extends BaseFragment{
     @Override
     public View initView() {
         System.out.println("初始化本地视频");
-        View view = View.inflate(activity,R.layout.fragment_video, null);
+        View view = View.inflate(activity,R.layout.fragment_media, null);
         videoListview = (ListView) view.findViewById(R.id.video_listview);
         videoLoading = (RelativeLayout) view.findViewById(R.id.video_loading);
         videoEmpty = (LinearLayout) view.findViewById(R.id.video_empty);
@@ -105,6 +101,7 @@ public class VideoFragment extends BaseFragment{
             @Override
             public void convert(final ViewHolder viewHolder, Object o, final int position) {
                 LocalVideo localVideo= (LocalVideo) o;
+                viewHolder.setImageResource(R.id.video_icon,R.mipmap.video_item_icon);
                 viewHolder.setText(R.id.video_name,MyUtils.fileNameRemoveSuffix(localVideo.getDisplay_name()));
                 viewHolder.setText(R.id.video_time,"时长："+ MyUtils.timestampToMinute(localVideo.getDuration())+"分钟");
                 viewHolder.setText(R.id.video_size,"大小："+ Formatter.formatFileSize(getActivity(), localVideo.getSize()));

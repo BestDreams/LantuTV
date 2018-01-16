@@ -17,7 +17,7 @@ public class Config {
     /**
      * 欢迎页跳转主页
      */
-    public static final int CONFIG_TIME_TO_MAIN=1000;
+    public static final int CONFIG_TIME_TO_MAIN=0;
     /**
      * 刷新网速时间
      */

@@ -109,12 +109,10 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
     private ImageView playerMenu;
     private ImageView playerLock;
     private ImageView playerScreen;
-    private ImageView playerDecode;
     private ImageView playerPlay;
     private ImageView playerNext;
     private TextView playerTime;
     private TextView playerCurrentPosition;
-    private TextView playerSwitch;
     private ImageView playerVolume;
     private TextView playerName;
     private SeekBar playerSeekbar;
@@ -167,12 +165,10 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
         playerMenu = (ImageView) findViewById(R.id.player_menu);
         playerLock = (ImageView) findViewById(R.id.player_lock);
         playerScreen = (ImageView) findViewById(R.id.player_screen);
-        playerDecode = (ImageView) findViewById(R.id.player_decode);
         playerPlay = (ImageView) findViewById(R.id.player_play);
         playerNext = (ImageView) findViewById(R.id.player_next);
         playerTime = (TextView) findViewById(R.id.player_time);
         playerCurrentPosition = (TextView) findViewById(R.id.player_currentPosition);
-        playerSwitch = (TextView) findViewById(R.id.player_switch);
         playerVolume = (ImageView) findViewById(R.id.player_volume);
         playerName = (TextView) findViewById(R.id.player_name);
         playerSeekbar = (SeekBar) findViewById(R.id.player_seekbar);
@@ -258,7 +254,6 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
 
         @Override
         public boolean onError(MediaPlayer mp, int what, int extra) {
-            setPlayerData();
             finish();
             return true;
         }
@@ -411,64 +406,32 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
     @Override
     public void onClick(View v) {
         switch (v.getId()){
+            //播放暂停
             case R.id.player_play:
                 playAndPause();
                 break;
+            //返回主页
             case R.id.player_back:
                 finish();
                 break;
+            //锁定屏幕
             case R.id.player_lock:
                 showMediaController(isShowMediaController);
                 isLockScreen=!isLockScreen;
                 MyToast.info("屏幕已锁定，双击解除锁定");
                 break;
+            //播放下一个
             case R.id.player_next:
-                if (!isNetUri){
+                if (!isNetUri&&currentIndex!=videoList.size()-1){
                     playLocalVideo(currentIndex+1);
                 }
                 break;
+            //是否静音
             case R.id.player_volume:
                 isMute=!isMute;
                 updateVolumeProgress(isMute,currentVolume);
                 break;
-            case R.id.player_decode:
-                handler.removeMessages(MSG_AUTO_HIDE_MENU);
-                new AlertDialog.Builder(SystemVideoPlayer.this)
-                        .setTitle("提示")
-                        .setCancelable(false)
-                        .setMessage("确定使用第三方解码器？")
-                        .setNegativeButton("确定", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,Config.CONFIG_TIME_HIDE_MENU);
-                                setPlayerData();
-                                finish();
-                            }
-                        })
-                        .setPositiveButton("取消", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                handler.sendEmptyMessageDelayed(MSG_AUTO_HIDE_MENU,Config.CONFIG_TIME_HIDE_MENU);
-                            }
-                        })
-                        .show();
-                break;
-            case R.id.player_switch:
-
-                break;
-
         }
-    }
-
-    public void setPlayerData(){
-        Intent intent=new Intent(SystemVideoPlayer.this,VitamioVideoPlayer.class);
-        if (videoList==null||videoList.size()==0){
-            intent.setData( getIntent().getData());
-        }else{
-            intent.putExtra("videoList",videoList);
-            intent.putExtra("currentIndex",currentIndex);
-        }
-        startActivity(intent);
     }
 
     /**
