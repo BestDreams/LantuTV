@@ -113,7 +113,7 @@ public class NetworkVideoFragment extends BaseFragment {
         httpRequest=new HttpRequest(getActivity());
         netVideoViewList=new ArrayList<>();
         pagerTitleList=new ArrayList<>();
-        getToutiaoList();
+        //getToutiaoList();
     }
 
     private void initListener() {
