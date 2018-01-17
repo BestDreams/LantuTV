@@ -56,7 +56,10 @@
                 <data android:mimeType="video/*" />
             </intent-filter>
         </activity>
-        <activity android:name=".SystemMusicPlayer" android:screenOrientation="portrait">
+        <activity
+            android:theme="@style/AppTheme.Music"
+            android:name=".SystemMusicPlayer"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
