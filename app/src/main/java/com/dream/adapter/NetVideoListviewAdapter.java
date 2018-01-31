@@ -1,10 +1,6 @@
 package com.dream.adapter;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.text.format.Formatter;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -12,13 +8,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.ViewTarget;
-import com.dream.bean.LocalVideo;
 import com.dream.bean.NetVideo;
 import com.dream.lantutv.R;
 import com.dream.utils.MyUtils;
-
-import org.xutils.x;
 
 import java.util.List;
 

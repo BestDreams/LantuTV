@@ -19,7 +19,8 @@ public class MyApplication extends Application {
         super.onCreate();
         x.Ext.init(this);
         x.Ext.setDebug(false);
-        MyUtils.initSimpleDataFormatTimeZone();
+        MyUtils.initSimpleDataWithHourFormatTimeZone();
+        MyUtils.initSimpleDataWithMinuteFormatTimeZone();
         MyToast.init(this,true,false);
     }
 }

@@ -31,11 +31,17 @@ import java.util.TimeZone;
 
 public class MyUtils {
 
-    public static SimpleDateFormat simpleDateFormat;
+    public static SimpleDateFormat simpleDateFormatWithHour;
+    public static SimpleDateFormat simpleDateFormatWithMinute;
 
-    public static void initSimpleDataFormatTimeZone(){
-        simpleDateFormat=new SimpleDateFormat("HH:mm:ss");
-        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT+0"));
+    public static void initSimpleDataWithHourFormatTimeZone(){
+        simpleDateFormatWithHour=new SimpleDateFormat("HH:mm:ss");
+        simpleDateFormatWithHour.setTimeZone(TimeZone.getTimeZone("GMT+0"));
+    }
+
+    public static void initSimpleDataWithMinuteFormatTimeZone(){
+        simpleDateFormatWithMinute=new SimpleDateFormat("mm:ss");
+        simpleDateFormatWithMinute.setTimeZone(TimeZone.getTimeZone("GMT+0"));
     }
     
     /**
@@ -43,16 +49,24 @@ public class MyUtils {
      * @param ms
      * @return
      */
-    public static int timestampToMinute(long ms){
+    public static int timestampToMinuteOnly(long ms){
         return (int)(ms/1000/60);
     };
 
     /**
-     * 时间戳转时间
+     * 时间戳转小时
      */
-    public static String timestampToTime(long ms){
-        return simpleDateFormat.format(ms).toString();
+    public static String timestampToHour(long ms){
+        return simpleDateFormatWithHour.format(ms).toString();
     };
+
+    /**
+     * 时间戳转分钟
+     */
+    public static String timestampToMinute(long ms){
+        return simpleDateFormatWithMinute.format(ms).toString();
+    };
+
 
     /**
      * 秒钟转分钟

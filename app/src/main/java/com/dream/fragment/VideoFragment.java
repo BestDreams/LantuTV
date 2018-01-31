@@ -17,7 +17,7 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 
 import com.dream.base.BaseFragment;
-import com.dream.bean.LocalVideo;
+import com.dream.bean.Media;
 import com.dream.lantutv.R;
 import com.dream.lantutv.SystemVideoPlayer;
 import com.dream.utils.MyUtils;
@@ -100,11 +100,11 @@ public class VideoFragment extends BaseFragment{
 
             @Override
             public void convert(final ViewHolder viewHolder, Object o, final int position) {
-                LocalVideo localVideo= (LocalVideo) o;
+                Media media = (Media) o;
                 viewHolder.setImageResource(R.id.video_icon,R.mipmap.video_item_icon);
-                viewHolder.setText(R.id.video_name,MyUtils.fileNameRemoveSuffix(localVideo.getDisplay_name()));
-                viewHolder.setText(R.id.video_time,"时长："+ MyUtils.timestampToMinute(localVideo.getDuration())+"分钟");
-                viewHolder.setText(R.id.video_size,"大小："+ Formatter.formatFileSize(getActivity(), localVideo.getSize()));
+                viewHolder.setText(R.id.video_name,MyUtils.fileNameRemoveSuffix(media.getDisplay_name()));
+                viewHolder.setText(R.id.video_time,"时长："+ MyUtils.timestampToMinute(media.getDuration())+"分钟");
+                viewHolder.setText(R.id.video_size,"大小："+ Formatter.formatFileSize(getActivity(), media.getSize()));
                 viewHolder.setOnClickListener(R.id.video_content, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -131,7 +131,7 @@ public class VideoFragment extends BaseFragment{
     /**
      * 扫描加载本地视频
      */
-    private ArrayList<LocalVideo> list;
+    private ArrayList<Media> list;
     public void getMediaData(boolean isShowLoading){
         int delayed=0;
         if (isShowLoading){
@@ -163,7 +163,7 @@ public class VideoFragment extends BaseFragment{
                                 long size=cursor.getLong(3);
                                 String data=cursor.getString(4);
                                 String artist=cursor.getString(5);
-                                list.add(new LocalVideo(id,display_name,duration,size,data,artist));
+                                list.add(new Media(id,display_name,duration,size,data,artist));
                             }
                             cursor.close();
                         }
@@ -231,12 +231,12 @@ public class VideoFragment extends BaseFragment{
     /**
      * 显示视频属性
      */
-    public void showVideoInfo(LocalVideo video){
+    public void showVideoInfo(Media video){
         new AlertDialog.Builder(getActivity())
                 .setTitle("属性")
                 .setMessage(
                         "名称："+MyUtils.fileNameRemoveSuffix(video.getDisplay_name())+"\n\n"+
-                        "时长："+MyUtils.timestampToTime(video.getDuration())+"分钟\n\n"+
+                        "时长："+MyUtils.timestampToHour(video.getDuration())+"分钟\n\n"+
                         "大小："+Formatter.formatFileSize(getActivity(),video.getSize())+"\n\n"+
                         "格式："+video.getDisplay_name().substring(video.getDisplay_name().lastIndexOf(".")+1)+"\n\n"+
                         "路径："+video.getData()

@@ -6,7 +6,7 @@ import java.io.Serializable;
  * Created by Administrator on 2018/1/2.
  */
 
-public class LocalVideo implements Serializable{
+public class Media implements Serializable{
     private int id;
     private String display_name;
     private long duration;
@@ -14,10 +14,10 @@ public class LocalVideo implements Serializable{
     private String data;
     private String artist;
 
-    public LocalVideo() {
+    public Media() {
     }
 
-    public LocalVideo(int id, String display_name, long duration, long size, String data, String artist) {
+    public Media(int id, String display_name, long duration, long size, String data, String artist) {
         this.id=id;
         this.display_name = display_name;
         this.duration = duration;

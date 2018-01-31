@@ -1,9 +1,6 @@
 package com.dream.lantutv;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -23,7 +20,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.VideoView;
 
-import com.dream.bean.LocalVideo;
+import com.dream.bean.Media;
 import com.dream.utils.Config;
 import com.dream.utils.MyUtils;
 
@@ -40,6 +37,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
     private static final int MSG_AUTO_HIDE_MENU = 1;
     private static final int MSG_HIDE_VLOUMEN = 2;
     private static final int MSG_UPDATE_NET_SPEED = 3;
+
     /**
      * 是否显示控制面板
      */
@@ -51,7 +49,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
     /**
      * 本地视频列表
      */
-    private ArrayList<LocalVideo> videoList;
+    private ArrayList<Media> videoList;
     /**
      * 当前视频索引
      */
@@ -193,7 +191,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
         audioManager= (AudioManager) getSystemService(this.AUDIO_SERVICE);
         maxVloume=audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         currentVolume=audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        videoList= (ArrayList<LocalVideo>) getIntent().getSerializableExtra("videoList");
+        videoList= (ArrayList<Media>) getIntent().getSerializableExtra("videoList");
         currentIndex=getIntent().getIntExtra("currentIndex",0);
         if (videoList==null||videoList.size()==0){
             //播放网络视频
@@ -236,7 +234,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
         public void onPrepared(MediaPlayer mp) {
             int duration = videoView.getDuration();
             playerSeekbar.setMax(duration);
-            playerTime.setText("/"+MyUtils.timestampToTime(duration));
+            playerTime.setText("/"+MyUtils.timestampToHour(duration));
             playerLayout.setClickable(true);
             playerMediaController.setVisibility(View.VISIBLE);
             videoLoading.setVisibility(View.GONE);
@@ -372,7 +370,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
                             float distanceX=endX-startX;
                             float distanceProgress = playerSeekbar.getMax() * distanceX / v.getWidth();
                             videoView.seekTo((int) (videoView.getCurrentPosition()+distanceProgress));
-                            playerCurrentPosition.setText(MyUtils.timestampToTime(videoView.getCurrentPosition()));
+                            playerCurrentPosition.setText(MyUtils.timestampToHour(videoView.getCurrentPosition()));
                             playerSeekbar.setProgress((int) (videoView.getCurrentPosition()+distanceProgress));
                             startX=endX;
                         }
@@ -476,10 +474,10 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
         if (index==videoList.size()) {
             index=0;
         }
-        LocalVideo localVideo = videoList.get(index);
-        isNetUri=MyUtils.isNetUri(Uri.parse(localVideo.getData()));
-        videoView.setVideoPath(localVideo.getData());
-        playerName.setText(localVideo.getDisplay_name());
+        Media media = videoList.get(index);
+        isNetUri=MyUtils.isNetUri(Uri.parse(media.getData()));
+        videoView.setVideoPath(media.getData());
+        playerName.setText(media.getDisplay_name());
         currentIndex=index;
     }
 
@@ -489,7 +487,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
     public void updateProgress(){
         int currentPosition = videoView.getCurrentPosition();
         playerSeekbar.setProgress(currentPosition);
-        playerCurrentPosition.setText(MyUtils.timestampToTime(currentPosition));
+        playerCurrentPosition.setText(MyUtils.timestampToHour(currentPosition));
         if (isNetUri){
             int bufferPercentage = videoView.getBufferPercentage();
             int progress=bufferPercentage*playerSeekbar.getMax()/100;
