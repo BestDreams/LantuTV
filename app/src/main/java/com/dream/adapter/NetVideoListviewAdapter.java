@@ -66,7 +66,7 @@ public class NetVideoListviewAdapter extends BaseAdapter {
                     .centerCrop()
                     .into(viewHodler.pic);
             viewHodler.name.setText(netVideo.getName());
-            viewHodler.times.setText(netVideo.getPraiseTimes()+"次播放");
+            viewHodler.times.setText(netVideo.getPraiseTimes()+"次点赞");
             viewHodler.duration.setText(MyUtils.secondToMinute(Integer.parseInt(netVideo.getDuration())));
         }
         return convertView;

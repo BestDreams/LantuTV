@@ -17,7 +17,7 @@ public class Config {
     /**
      * 欢迎页跳转主页
      */
-    public static final int CONFIG_TIME_TO_MAIN=0;
+    public static final int CONFIG_TIME_TO_MAIN=2000;
     /**
      * 刷新网速时间
      */
@@ -36,6 +36,16 @@ public class Config {
      * 主题颜色
      */
     public static final String CONFIG_COLOR_THEME="#4b405c";
+
+    /**
+     * 音乐播放通知ID
+     */
+    public static final int NOTIFICATION_MUSIC_ID=1001;
+
+    /**
+     * 本地存储 KEY
+     */
+    public static final String SP_LASTPLAYING="lastPlaying";
 
 
 }

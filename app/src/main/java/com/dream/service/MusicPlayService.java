@@ -1,27 +1,29 @@
 package com.dream.service;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.media.MediaPlayer;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.View;
 
 import com.dream.bean.Media;
 import com.dream.lantutv.IMusicPlayService;
+import com.dream.lantutv.R;
 import com.dream.lantutv.SystemMusicPlayer;
+import com.dream.utils.Config;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import es.dmoral.toasty.MyToast;
+import java.util.Random;
 
 /**
  * Created by Administrator on 2018/1/18.
@@ -30,13 +32,24 @@ import es.dmoral.toasty.MyToast;
 public class MusicPlayService extends Service {
 
     /**
+     * 播放模式
+     * MUSIC_MODE_ORDER 顺序播放
+     * MUSIC_MODE_RANDOM 随机播放
+     * MUSIC_MODE_SINGLE 单曲循环
+     */
+    public static final int MUSIC_MODE_ORDER=0;
+    public static final int MUSIC_MODE_RANDOM=1;
+    public static final int MUSIC_MODE_SINGLE=2;
+
+
+    /**
      * 音乐媒体集合
      */
-    private ArrayList<Media> mediaItemlist;
+    private List<Media> mediaList;
     /**
-     * 媒体扫描完成
+     * 当前播放索引
      */
-    private boolean isLoadingFinsh;
+    private int position;
     /**
      * 当前媒体对象
      */
@@ -46,43 +59,51 @@ public class MusicPlayService extends Service {
      */
     private MediaPlayer mediaPlayer;
     /**
-     * 当前播放索引
+     * 通知管理器
      */
-    private int position;
+    private NotificationManager notificationManager;
+    /**
+     * 播放模式
+     */
+    private int playMode=0;
+    /**
+     * 随机数
+     */
+    private Random random;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        getMediaData();
+        loadingMediaData();
+        initData();
+    }
+
+    private void initData() {
+        random=new Random();
     }
 
     /**
      * 准备音频
      */
-    private void prepareAudio(int position){
-        Log.i("my",isLoadingFinsh?"准备完成":"正在扫描中...");
-        if (isLoadingFinsh){
-            if (mediaItemlist!=null&&mediaItemlist.size()>0){
-                this.position=position;
-                media=mediaItemlist.get(position);
-                if (mediaPlayer!=null){
-                    mediaPlayer.reset();
-                    mediaPlayer.release();
-                    mediaPlayer=null;
-                }
-                try {
-                    mediaPlayer=new MediaPlayer();
-                    mediaPlayer.setDataSource(media.getData());
-                    mediaPlayer.setOnPreparedListener(new MyOnPreparedListener());
-                    mediaPlayer.setOnCompletionListener(new MyOnCompletionListener());
-                    mediaPlayer.setOnErrorListener(new MyOnErrorListener());
-                    mediaPlayer.prepareAsync();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+    private void prepareAudio(int index){
+        if (mediaList!=null&&mediaList.size()>0){
+            position=index;
+            media=mediaList.get(position);
+            if (mediaPlayer!=null){
+                mediaPlayer.reset();
+                mediaPlayer.release();
+                mediaPlayer=null;
             }
-        }else{
-            MyToast.warn("正在扫描媒体库，请稍后...");
+            try {
+                mediaPlayer=new MediaPlayer();
+                mediaPlayer.setDataSource(media.getData());
+                mediaPlayer.setOnPreparedListener(new MyOnPreparedListener());
+                mediaPlayer.setOnCompletionListener(new MyOnCompletionListener());
+                mediaPlayer.setOnErrorListener(new MyOnErrorListener());
+                mediaPlayer.prepareAsync();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -93,6 +114,7 @@ public class MusicPlayService extends Service {
 
         @Override
         public void onPrepared(MediaPlayer mediaPlayer) {
+            mediaPlayer.start();
             sendBroadcast(new Intent(SystemMusicPlayer.BRODCAST_MUSIC_PERPARED));
         }
     }
@@ -104,7 +126,7 @@ public class MusicPlayService extends Service {
 
         @Override
         public void onCompletion(MediaPlayer mediaPlayer) {
-
+            next();
         }
     }
 
@@ -130,27 +152,58 @@ public class MusicPlayService extends Service {
      * 播放
      */
     private void play(){
-        mediaPlayer.start();
+        if (mediaPlayer!=null){
+            mediaPlayer.start();
+        }
+    }
+
+    /**
+     *在通知栏显示歌曲播放通知
+     */
+    private void showInfoOnNotification(){
+        notificationManager= (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        Intent intent=new Intent(this,SystemMusicPlayer.class);
+        intent.putExtra("notification",true);
+        PendingIntent pendingIntent=PendingIntent.getActivity(this,2001,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification notification=new Notification.Builder(this)
+                .setSmallIcon(R.mipmap.music_item_icon)
+                .setContentTitle(getMusicName())
+                .setContentText(getArtist())
+                .setContentIntent(pendingIntent)
+                .build();
+        notificationManager.notify(Config.NOTIFICATION_MUSIC_ID, notification);
     }
 
     /**
      * 暂停
      */
     private void pause(){
-        mediaPlayer.pause();
+        if (mediaPlayer!=null&&mediaPlayer.isPlaying()){
+            mediaPlayer.pause();
+        }
     }
 
     /**
      * 停止
      */
     private void stop(){
-        mediaPlayer.stop();
+        if (mediaPlayer!=null){
+            mediaPlayer.stop();
+        }
     }
 
     /**
      * 上一首
      */
     private void last(){
+        if (mediaList!=null&&mediaList.size()>0){
+            if (position==0){
+                position=mediaList.size()-1;
+            }else{
+                position--;
+            }
+            prepareAudio(position);
+        }
 
     }
 
@@ -158,7 +211,30 @@ public class MusicPlayService extends Service {
      * 下一首
      */
     private void next(){
-
+        switch (playMode){
+            /**
+             * 顺序播放
+             */
+            case MUSIC_MODE_ORDER:
+                if (mediaList!=null&&mediaList.size()>0){
+                    if (position==mediaList.size()-1){
+                        position=0;
+                    }else{
+                        position++;
+                    }
+                }
+                break;
+            /**
+             * 随机播放
+             */
+            case MUSIC_MODE_RANDOM:
+                position=random.nextInt(mediaList.size());
+                break;
+            case MUSIC_MODE_SINGLE:
+                break;
+        }
+        Log.i("my","当前播放："+position);
+        prepareAudio(position);
     }
 
     /**
@@ -167,7 +243,7 @@ public class MusicPlayService extends Service {
      * 1：随机播放
      */
     private void setPlayMode(int playMode){
-
+        this.playMode=playMode;
     }
 
     /**
@@ -176,7 +252,7 @@ public class MusicPlayService extends Service {
      * 1：随机播放
      */
     public int getPlayMode(){
-        return 0;
+        return playMode;
     }
 
     /**
@@ -223,43 +299,6 @@ public class MusicPlayService extends Service {
         return false;
     }
 
-
-    /**
-     * 扫描加载本地音乐
-     */
-    public void getMediaData(){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mediaItemlist=new ArrayList<>();
-                ContentResolver contentResolver = getContentResolver();
-                String[] scannerArray={
-                        MediaStore.Audio.Media._ID, //视频ID
-                        MediaStore.Audio.Media.DISPLAY_NAME, //视频名称
-                        MediaStore.Audio.Media.DURATION, //视频时长
-                        MediaStore.Audio.Media.SIZE, //视频大小
-                        MediaStore.Audio.Media.DATA, //视频地址
-                        MediaStore.Audio.Media.ARTIST //艺术家
-                };
-                Cursor cursor = contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, scannerArray, null, null, null);
-                if (cursor!=null){
-                    while (cursor.moveToNext()){
-                        int id = cursor.getInt(0);
-                        String display_name = cursor.getString(1);
-                        long duration = cursor.getLong(2);
-                        long size=cursor.getLong(3);
-                        String data=cursor.getString(4);
-                        String artist=cursor.getString(5);
-                        mediaItemlist.add(new Media(id,display_name,duration,size,data,artist));
-                    }
-                    cursor.close();
-                }
-                isLoadingFinsh=true;
-            }
-        }).start();
-    }
-
-
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -270,8 +309,8 @@ public class MusicPlayService extends Service {
         MusicPlayService service = MusicPlayService.this;
 
         @Override
-        public void prepareAudio(int position) throws RemoteException {
-            service.prepareAudio(position);
+        public void prepareAudio(int index) throws RemoteException {
+            service.prepareAudio(index);
         }
 
         @Override
@@ -343,7 +382,46 @@ public class MusicPlayService extends Service {
         public boolean isPlaying() throws RemoteException {
             return service.isPlaying();
         }
+
+        @Override
+        public void showInfoOnNotification() throws RemoteException {
+            service.showInfoOnNotification();
+        }
     };
+
+    /**
+     * 扫描加载本地音乐
+     */
+    public void loadingMediaData(){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                mediaList=new ArrayList<>();
+                ContentResolver contentResolver = getContentResolver();
+                String[] scannerArray={
+                        MediaStore.Audio.Media._ID, //视频ID
+                        MediaStore.Audio.Media.DISPLAY_NAME, //视频名称
+                        MediaStore.Audio.Media.DURATION, //视频时长
+                        MediaStore.Audio.Media.SIZE, //视频大小
+                        MediaStore.Audio.Media.DATA, //视频地址
+                        MediaStore.Audio.Media.ARTIST //艺术家
+                };
+                Cursor cursor = contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, scannerArray, null, null, null);
+                if (cursor!=null){
+                    while (cursor.moveToNext()){
+                        int id = cursor.getInt(0);
+                        String display_name = cursor.getString(1);
+                        long duration = cursor.getLong(2);
+                        long size=cursor.getLong(3);
+                        String data=cursor.getString(4);
+                        String artist=cursor.getString(5);
+                        mediaList.add(new Media(id,display_name,duration,size,data,artist));
+                    }
+                    cursor.close();
+                }
+            }
+        }).start();
+    }
 
     @Override
     public void onDestroy() {

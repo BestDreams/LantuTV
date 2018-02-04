@@ -16,6 +16,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.dream.adapter.NetVideoListviewAdapter;
@@ -35,8 +36,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import es.dmoral.toasty.MyToast;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -113,7 +112,7 @@ public class NetworkVideoFragment extends BaseFragment {
         httpRequest=new HttpRequest(getActivity());
         netVideoViewList=new ArrayList<>();
         pagerTitleList=new ArrayList<>();
-        //getToutiaoList();
+        LoadNetVideoData();
     }
 
     private void initListener() {
@@ -150,7 +149,7 @@ public class NetworkVideoFragment extends BaseFragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (isCacheData){
-                    MyToast.warn("请连接网络后重试");
+                    Toast.makeText(getActivity(),"请连接网络后重试",Toast.LENGTH_SHORT).show();
                 }else{
                     setPlayerDataSource(netVideoNodeMap.get(currNodeName).get(position));
                 }
@@ -184,7 +183,7 @@ public class NetworkVideoFragment extends BaseFragment {
     /**
      * 获取头条视频列表
      */
-    public void getToutiaoList(){
+    public void LoadNetVideoData(){
         netVideoNodeMap=new HashMap<>();
         httpRequest.sendRequest(Request.Method.GET, Config.CONFIG_URL_HOME, new HttpRequest.OnRequestFinish() {
             @Override

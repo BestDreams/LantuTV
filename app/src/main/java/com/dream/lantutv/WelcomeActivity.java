@@ -20,8 +20,6 @@ import android.widget.Toast;
 import com.dream.utils.Config;
 import com.dream.utils.MyUtils;
 
-import es.dmoral.toasty.MyToast;
-
 public class WelcomeActivity extends Activity {
 
     @Override

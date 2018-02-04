@@ -18,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.dream.bean.Media;
@@ -26,7 +27,6 @@ import com.dream.utils.MyUtils;
 
 import java.util.ArrayList;
 
-import es.dmoral.toasty.MyToast;
 
 public class SystemVideoPlayer extends Activity implements View.OnClickListener{
 
@@ -145,7 +145,6 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_video);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        MyToast.init(this,true,false);
         initView();
         initData();
         initListener();
@@ -416,7 +415,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener{
             case R.id.player_lock:
                 showMediaController(isShowMediaController);
                 isLockScreen=!isLockScreen;
-                MyToast.info("屏幕已锁定，双击解除锁定");
+                Toast.makeText(this,"屏幕已锁定，双击解除锁定",Toast.LENGTH_SHORT).show();
                 break;
             //播放下一个
             case R.id.player_next:

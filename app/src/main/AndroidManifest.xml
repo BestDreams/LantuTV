@@ -20,11 +20,16 @@
         <activity
             android:name=".WelcomeActivity"
             android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait" />
+
         <activity
             android:name=".SystemVideoPlayer"
             android:label="LantuTV万能播放器"
@@ -59,12 +64,8 @@
         <activity
             android:theme="@style/AppTheme.Music"
             android:name=".SystemMusicPlayer"
-            android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:screenOrientation="portrait"
+            android:launchMode="singleTop">
         </activity>
 
         <service android:name="com.dream.service.MusicPlayService">

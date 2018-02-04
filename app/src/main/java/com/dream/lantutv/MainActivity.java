@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                         getResources().getDrawable(R.mipmap.ic_third),
                         Color.parseColor(colors[2]))
                         .selectedIcon(getResources().getDrawable(R.mipmap.ic_seventh))
-                        .title("抖音")
+                        .title("梨视频")
                         .badgeTitle("three")
                         .build()
         );

@@ -7,7 +7,7 @@ interface IMusicPlayService {
             /**
                  * 准备音频
                  */
-                void prepareAudio(int position);
+                void prepareAudio(int index);
 
                 /**
                  * 当前播放索引
@@ -82,5 +82,10 @@ interface IMusicPlayService {
                  * 是否正在播放
                  */
                 boolean isPlaying();
+
+                /**
+                 *在通知栏显示歌曲信息
+                 */
+                void showInfoOnNotification();
 
 }

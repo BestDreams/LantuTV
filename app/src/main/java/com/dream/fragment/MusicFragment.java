@@ -15,10 +15,12 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.dream.base.BaseFragment;
 import com.dream.bean.Media;
 import com.dream.lantutv.R;
+import com.dream.lantutv.SystemMusicPlayer;
 import com.dream.lantutv.SystemVideoPlayer;
 import com.dream.utils.MyUtils;
 import com.mcxtzhang.commonadapter.lvgv.CommonAdapter;
@@ -28,9 +30,6 @@ import com.yalantis.phoenix.PullToRefreshView;
 
 import java.io.File;
 import java.util.ArrayList;
-
-import es.dmoral.toasty.MyToast;
-
 
 /**
  * A simple {@link Fragment} subclass.
@@ -103,7 +102,7 @@ public class MusicFragment extends BaseFragment{
                 Media media = (Media) o;
                 viewHolder.setImageResource(R.id.video_icon,R.mipmap.music_item_icon);
                 viewHolder.setText(R.id.video_name,MyUtils.fileNameRemoveSuffix(media.getDisplay_name()));
-                viewHolder.setText(R.id.video_time,"时长："+ MyUtils.timestampToMinute(media.getDuration())+"分钟");
+                viewHolder.setText(R.id.video_time,"时长："+ MyUtils.timestampToMinute(media.getDuration()));
                 viewHolder.setText(R.id.video_size,"大小："+ Formatter.formatFileSize(getActivity(), media.getSize()));
                 viewHolder.setOnClickListener(R.id.video_content, new View.OnClickListener() {
                     @Override
@@ -177,10 +176,10 @@ public class MusicFragment extends BaseFragment{
 
     //视频列表点击事件，播放视频
     public void startPlayer(int position){
-        Intent intent=new Intent(getActivity(),SystemVideoPlayer.class);
+        Intent intent=new Intent(getActivity(),SystemMusicPlayer.class);
         //播放本地视频
-        intent.putExtra("videoList",list);
-        intent.putExtra("currentIndex",position);
+        intent.putExtra("mediaList",list);
+        intent.putExtra("position",position);
         //播放网络视频
         /*intent.setData(Uri.parse(""));*/
         startActivity(intent);
@@ -195,12 +194,12 @@ public class MusicFragment extends BaseFragment{
                     public void onClick(DialogInterface dialog, int which) {
                         String delResult = deleteFile(list.get(position).getData());
                         if (delResult.equals("successful")){
-                            MyToast.info("删除成功");
+                            Toast.makeText(getActivity(),"删除成功",Toast.LENGTH_SHORT).show();
                             menu.quickClose();
                             list.remove(position);
                             commonAdapter.notifyDataSetChanged();
                         }else{
-                            MyToast.warn(delResult);
+                            Toast.makeText(getActivity(),delResult,Toast.LENGTH_SHORT).show();
                         }
                     }
                 })
@@ -236,7 +235,7 @@ public class MusicFragment extends BaseFragment{
                 .setTitle("属性")
                 .setMessage(
                         "名称："+MyUtils.fileNameRemoveSuffix(video.getDisplay_name())+"\n\n"+
-                        "时长："+MyUtils.timestampToHour(video.getDuration())+"分钟\n\n"+
+                        "时长："+MyUtils.timestampToMinute(video.getDuration())+"\n\n"+
                         "大小："+Formatter.formatFileSize(getActivity(),video.getSize())+"\n\n"+
                         "格式："+video.getDisplay_name().substring(video.getDisplay_name().lastIndexOf(".")+1)+"\n\n"+
                         "路径："+video.getData()
@@ -244,7 +243,6 @@ public class MusicFragment extends BaseFragment{
                 .setPositiveButton("确定",null)
                 .show();
     }
-
 
     @Override
     public void onDestroy() {

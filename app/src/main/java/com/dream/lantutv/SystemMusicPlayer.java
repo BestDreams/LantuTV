@@ -1,49 +1,60 @@
 package com.dream.lantutv;
 
 import android.animation.ObjectAnimator;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.dream.adapter.ViewPagerAdapater;
 import com.dream.service.MusicPlayService;
+import com.dream.utils.Config;
 import com.dream.utils.MyUtils;
 import com.dream.view.CircleImageView;
+import com.dream.view.LyricView;
+
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class SystemMusicPlayer extends AppCompatActivity implements View.OnClickListener {
-
     private static final int MSG_ROTATE_COVER=0;
     private static final int MSG_MUSIC_PROGRESS = 1;
+    private static final int MSG_MUSIC_LYRIC = 2;
+
     public static final String BRODCAST_MUSIC_PERPARED="BRODCAST_MUSIC_PERPARED";
 
     /**
      * 是否正在播放
      */
     private boolean isPlaying=false;
-
     /**
      * 封面旋转角度
      */
     private int progress=0;
-
     /**
      * 播放模式
-     * true 随机播放
-     * false 顺序播放
+     * 0 顺序播放
+     * 1 随机播放
+     * 2 单曲循环
      */
-    private boolean isRandomPlay=false;
+    private int musicPlayMode=0;
 
     /**
      * 音乐播放服务AIDL
@@ -55,9 +66,23 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
      */
     private BroadcastReceiver recevier;
 
-    private Intent musicServiceIntent;
-
+    /**
+     * 当前播放位置
+     */
     private int position=0;
+
+    /**
+     * 是否从通知进来
+     */
+    private boolean isFormNotification;
+    /**
+     * 本地存储对象
+     */
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
+
+    private ViewPager musicViewpager;
+
     /**
      * 服务连接
      */
@@ -72,7 +97,11 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
             try {
                 service=IMusicPlayService.Stub.asInterface(iBinder);
                 if (service!=null){
-                    service.prepareAudio(position);
+                    if (isFormNotification){
+                        setViewData(true);
+                    }else{
+                        service.prepareAudio(position);
+                    }
                 }
             } catch (RemoteException e) {
                 e.printStackTrace();
@@ -101,11 +130,12 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music);
         initView();
+        initMusicPage();
         initData();
         bindAndSatrtService();
     }
 
-    private Handler hander=new Handler(){
+    private Handler handler =new Handler(){
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what){
@@ -113,7 +143,8 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
                     ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(musicCover, "rotation", progress, progress += 1);
                     objectAnimator.setDuration(50);
                     objectAnimator.start();
-                    hander.sendEmptyMessageDelayed(0,50);
+                    handler.removeMessages(MSG_ROTATE_COVER);
+                    handler.sendEmptyMessageDelayed(MSG_ROTATE_COVER,50);
                     if (progress==360){
                         progress=0;
                     }
@@ -124,7 +155,20 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
                         musicSeekbar.setProgress(service.getPregress());
                         musicProgress.setText(MyUtils.timestampToMinute(service.getPregress()));
                         musicTotal.setText(MyUtils.timestampToMinute(service.getTotalPregree()));
-                        hander.sendEmptyMessageDelayed(MSG_MUSIC_PROGRESS,1000);
+                        handler.removeMessages(MSG_MUSIC_PROGRESS);
+                        handler.sendEmptyMessageDelayed(MSG_MUSIC_PROGRESS,1000);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case MSG_MUSIC_LYRIC:
+                    /**
+                     * 当前播放进度
+                     */
+                    try {
+                        musicCurlayric.setText(musicLyric.setIndex(service.getPregress()));
+                        handler.removeMessages(MSG_MUSIC_LYRIC);
+                        handler.sendEmptyMessageDelayed(MSG_MUSIC_LYRIC,100);
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }
@@ -133,7 +177,7 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
         }
     };
 
-    private CircleImageView musicCover;
+
     private ImageView musicPlay;
     private ImageView musicType;
     private TextView musicName;
@@ -142,8 +186,8 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
     private SeekBar musicSeekbar;
     private TextView musicTotal;
 
+
     public void initView(){
-        musicCover = (CircleImageView) findViewById(R.id.music_cover);
         musicPlay = (ImageView) findViewById(R.id.music_play);
         musicType = (ImageView) findViewById(R.id.music_type);
         musicName = (TextView) findViewById(R.id.music_name);
@@ -151,7 +195,31 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
         musicProgress = (TextView) findViewById(R.id.music_progress);
         musicSeekbar = (SeekBar) findViewById(R.id.music_seekbar);
         musicTotal = (TextView) findViewById(R.id.music_total);
+        musicViewpager = (ViewPager) findViewById(R.id.music_viewpager);
         musicSeekbar.setOnSeekBarChangeListener(new MyOnSeekBarChangeListener());
+    }
+
+    private List<View> musicPages;
+    private CircleImageView musicCover;
+    private LyricView musicLyric;
+    private TextView musicCurlayric;
+    private void initMusicPage() {
+        /**
+         * 封面页
+         */
+        View coverView=View.inflate(this,R.layout.music_view_cover,null);
+        musicCover = (CircleImageView) coverView.findViewById(R.id.music_cover);
+        musicCurlayric = (TextView) coverView.findViewById(R.id.music_curlayric);
+        /**
+         * 歌词页
+         */
+        View lyricView=View.inflate(this,R.layout.music_view_lyric,null);
+        musicLyric = (LyricView) lyricView.findViewById(R.id.music_lyric);
+
+        musicPages=new ArrayList<>();
+        musicPages.add(coverView);
+        musicPages.add(lyricView);
+        musicViewpager.setAdapter(new ViewPagerAdapater(musicPages));
     }
 
     private void initData() {
@@ -159,25 +227,68 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
         IntentFilter intentFilter=new IntentFilter();
         intentFilter.addAction(BRODCAST_MUSIC_PERPARED);
         registerReceiver(recevier,intentFilter);
+        sharedPreferences=getSharedPreferences("app",MODE_PRIVATE);
+        editor=sharedPreferences.edit();
+        isFormNotification=getIntent().getBooleanExtra("notification",false);
+        position=getIntent().getIntExtra("position",0);
     }
 
     /**
-     * 广播监听者
+     * 媒体准备完成时
      */
     class MyBroadcastReceiver extends BroadcastReceiver{
 
         @Override
         public void onReceive(Context context, Intent intent) {
             try {
-                musicName.setText(service.getMusicName());
-                musicArtist.setText(" —  "+service.getArtist()+"  — ");
-                hander.sendEmptyMessage(MSG_MUSIC_PROGRESS);
+                service.play();
+                setViewData(true);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
         }
     }
 
+    /**
+     * 更新播放器数据
+     * @param isRotate 是否旋转封面
+     */
+    private void setViewData(boolean isRotate){
+        try {
+            if (service!=null){
+                isPlaying=service.isPlaying();
+                musicPlay.setImageResource(isPlaying?R.mipmap.music_pause:R.mipmap.music_play);
+                musicName.setText(MyUtils.fileNameRemoveSuffix(service.getMusicName()).split("-")[1].trim());
+                musicArtist.setText(" —  "+service.getArtist()+"  — ");
+                musicPlayMode=service.getPlayMode();
+                switch (musicPlayMode){
+                    case MusicPlayService.MUSIC_MODE_ORDER:
+                        musicType.setImageResource(R.mipmap.music_order);
+                        break;
+                    case MusicPlayService.MUSIC_MODE_RANDOM:
+                        musicType.setImageResource(R.mipmap.music_random);
+                        break;
+                    case MusicPlayService.MUSIC_MODE_SINGLE:
+                        musicType.setImageResource(R.mipmap.music_single);
+                        break;
+                }
+                handler.removeMessages(MSG_MUSIC_LYRIC);
+                handler.sendEmptyMessage(MSG_MUSIC_LYRIC);
+                handler.removeMessages(MSG_MUSIC_PROGRESS);
+                handler.sendEmptyMessage(MSG_MUSIC_PROGRESS);
+                if (isRotate){
+                    handler.removeMessages(MSG_ROTATE_COVER);
+                    handler.sendEmptyMessage(MSG_ROTATE_COVER);
+                }
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 滑动进度条时
+     */
     class MyOnSeekBarChangeListener implements SeekBar.OnSeekBarChangeListener{
 
         @Override
@@ -206,6 +317,7 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
     /**
      * 绑定并开始音乐播放服务
      */
+    private Intent musicServiceIntent;
     public void bindAndSatrtService(){
         musicServiceIntent=new Intent(this, MusicPlayService.class);
         musicServiceIntent.setAction("com.dream.service.MusicPlayService");
@@ -222,7 +334,24 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
                 break;
             case R.id.music_type:
                 //设置播放模式
-                orderOrRandom();
+                setMusicPlayMode();
+                break;
+            case R.id.music_last:
+                try {
+                    service.last();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case R.id.music_next:
+                try {
+                    service.next();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case R.id.music_exit:
+                finish();
                 break;
         }
     }
@@ -233,18 +362,18 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
     public void playOrPause(){
         try {
             isPlaying=service.isPlaying();
+            handler.removeMessages(MSG_ROTATE_COVER);
             if (isPlaying){
                 /**
                  * 暂停
                  */
                 musicPlay.setImageResource(R.mipmap.music_play);
-                hander.removeMessages(MSG_ROTATE_COVER);
                 service.pause();
             }else{
                 /**
                  * 播放
                  */
-                hander.sendEmptyMessage(MSG_ROTATE_COVER);
+                handler.sendEmptyMessage(MSG_ROTATE_COVER);
                 musicPlay.setImageResource(R.mipmap.music_pause);
                 service.play();
             }
@@ -254,22 +383,73 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
     }
 
     /**
-     * 随机/顺序播放
+     * 设置音乐播放模式
      */
-    public void orderOrRandom(){
-        isRandomPlay=!isRandomPlay;
-        if (isRandomPlay){
-            musicType.setImageResource(R.mipmap.music_random);
-        }else{
-            musicType.setImageResource(R.mipmap.music_order);
+    public void setMusicPlayMode(){
+        try {
+            switch (musicPlayMode){
+                case MusicPlayService.MUSIC_MODE_ORDER:
+                    musicPlayMode=MusicPlayService.MUSIC_MODE_RANDOM;
+                    musicType.setImageResource(R.mipmap.music_random);
+                    Toast.makeText(this,"随机播放",Toast.LENGTH_SHORT).show();
+                    break;
+                case MusicPlayService.MUSIC_MODE_RANDOM:
+                    musicPlayMode=MusicPlayService.MUSIC_MODE_SINGLE;
+                    musicType.setImageResource(R.mipmap.music_single);
+                    Toast.makeText(this,"单曲循环",Toast.LENGTH_SHORT).show();
+                    break;
+                case MusicPlayService.MUSIC_MODE_SINGLE:
+                    musicPlayMode=MusicPlayService.MUSIC_MODE_ORDER;
+                    musicType.setImageResource(R.mipmap.music_order);
+                    Toast.makeText(this,"顺序播放",Toast.LENGTH_SHORT).show();
+                    break;
+            }
+            service.setPlayMode(musicPlayMode);
+        } catch (RemoteException e) {
+            e.printStackTrace();
         }
+    }
+
+    /**
+     * 从通知栏移除通知
+     */
+    @Override
+    protected void onStart() {
+        ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).cancel(Config.NOTIFICATION_MUSIC_ID);
+        super.onStart();
+    }
+
+    /**
+     * 在通知栏显示通知
+     */
+    @Override
+    protected void onStop() {
+        try {
+            if (service.isPlaying()){
+                service.showInfoOnNotification();
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        super.onStop();
     }
 
     @Override
     protected void onDestroy() {
-        /*hander.removeCallbacksAndMessages(null);
+        try {
+            if (service.isPlaying()){
+                editor.putBoolean(Config.SP_LASTPLAYING,true);
+            }else{
+                editor.putBoolean(Config.SP_LASTPLAYING,false);
+                stopService(musicServiceIntent);
+            }
+            editor.commit();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
         unbindService(serviceConnection);
-        stopService(musicServiceIntent);*/
+        unregisterReceiver(recevier);
+        handler.removeCallbacksAndMessages(null);
         super.onDestroy();
     }
 }
