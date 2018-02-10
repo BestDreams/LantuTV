@@ -175,7 +175,20 @@ public class MyUtils {
      * 文件名去后缀
      */
     public static String fileNameRemoveSuffix(String fileName){
-        return fileName.substring(0,fileName.lastIndexOf("."));
+        if(fileName.contains(".")){
+            return fileName.substring(0,fileName.lastIndexOf("."));
+        }
+        return fileName;
+    }
+
+    /**
+     * 得到音乐名
+     */
+    public static String getMusicName(String fileName){
+        if (fileName.contains("-")){
+            return fileName.split("-")[1].trim();
+        }
+        return fileName;
     }
 
     /**

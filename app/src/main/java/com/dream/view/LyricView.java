@@ -13,6 +13,7 @@ import com.dream.bean.Lyric;
 import com.dream.utils.DensityUtil;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Administrator on 2018/2/4.
@@ -23,7 +24,7 @@ public class LyricView extends View {
     /**
      * 歌词数据集合
      */
-    private ArrayList<Lyric> lyricList;
+    private List<Lyric> lyricList;
     /**
      * 控件宽度
      */
@@ -31,7 +32,7 @@ public class LyricView extends View {
     /**
      * 控件高度
      */
-    private int height;
+    private float height;
     /**
      * 歌词画笔-普通
      */
@@ -41,10 +42,15 @@ public class LyricView extends View {
      */
     private Paint paintLight;
     /**
+     * 当前播放进度
+     */
+    private long curPosition;
+    /**
      * 当前歌词索引
      */
     private int index=0;
-    private int lineHeight=0;
+    private float lineHeight=0;
+    private float linePaddingPX;
 
     public LyricView(Context context) {
         this(context, null);
@@ -58,7 +64,7 @@ public class LyricView extends View {
         super(context, attrs, defStyleAttr);
 
         lineHeight= DensityUtil.dip2px(context,15);
-
+        linePaddingPX = DensityUtil.dip2px(context,10);
         paintNormal=new Paint();
         paintNormal.setColor(Color.WHITE);
         paintNormal.setAntiAlias(true);
@@ -70,14 +76,6 @@ public class LyricView extends View {
         paintLight.setAntiAlias(true);
         paintLight.setTextSize(lineHeight);
         paintLight.setTextAlign(Paint.Align.CENTER);
-
-        /**
-         * 模拟数据
-         */
-        lyricList=new ArrayList<>();
-        for (int i = 0; i < 50; i++) {
-            lyricList.add(new Lyric("Hello World"+i,1000*i,1000));
-        }
     }
 
     @Override
@@ -91,36 +89,49 @@ public class LyricView extends View {
     protected void onDraw(Canvas canvas) {
         if (lyricList==null||lyricList.size()==0){
             canvas.drawText("暂无歌词",width/2,height/2,paintNormal);
+
         }else{
-            int tempHeight=height/2;
+            /**
+             *  平移距离计算
+             *  播放进度：睡眠时间 = 平移距离：行高
+             *  平移距离=（播放进度：睡眠时间）* 行高
+             */
+
+            Lyric currentLyric=lyricList.get(index);
+            float offset=0;
+            if (currentLyric.getSleepTime()!=0){
+                offset=((curPosition-currentLyric.getTimePoint())/currentLyric.getSleepTime())*(lineHeight+linePaddingPX);
+            }
+            canvas.translate(0,-offset);
+
+            float tempHeight=height/2;
             for (int i = index-1; i >= 0; i--) {
-                tempHeight-=lineHeight;
+                tempHeight-=lineHeight+linePaddingPX;
                 canvas.drawText(lyricList.get(i).getContent(),width/2,tempHeight,paintNormal);
                 if (tempHeight<=0){
                     break;
                 }
             }
-
-            canvas.drawText(lyricList.get(index).getContent(),width/2,height/2,paintLight);
-
+            canvas.drawText(currentLyric.getContent(),width/2,height/2,paintLight);
             tempHeight=height/2;
             for (int i = index+1; i < lyricList.size(); i++) {
-                tempHeight+=lineHeight;
+                tempHeight+=lineHeight+linePaddingPX;
                 canvas.drawText(lyricList.get(i).getContent(),width/2,tempHeight,paintNormal);
-                if (tempHeight>=height){
+                if (tempHeight>=height+linePaddingPX){
                     break;
                 }
             }
         }
     }
 
-    public void setLyricList(ArrayList<Lyric> lyricList) {
+    public void setLyricList(List<Lyric> lyricList) {
         this.lyricList = lyricList;
     }
 
     public String setIndex(int curPosition) {
+        this.curPosition=curPosition;
         for (int i = 1; i < lyricList.size(); i++) {
-            if (curPosition<lyricList.get(i).getTimePoint()&&curPosition>=lyricList.get(i-1).getTimePoint()){
+            if (this.curPosition<lyricList.get(i).getTimePoint()&&this.curPosition>=lyricList.get(i-1).getTimePoint()){
                 this.index=i-1;
                 invalidate();
                 return lyricList.get(this.index).getContent();

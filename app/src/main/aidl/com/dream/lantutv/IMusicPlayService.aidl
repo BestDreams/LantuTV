@@ -86,6 +86,18 @@ interface IMusicPlayService {
                 /**
                  *在通知栏显示歌曲信息
                  */
-                void showInfoOnNotification();
+                void showInfoOnNotification(String musicName,String artist);
+
+                /**
+                 * 是否正在显示通知
+                 */
+                boolean isShowNotification();
+
+                /**
+                 * 设置时候正在显示通知
+                 */
+                void setShowNotification(boolean showNotification);
+
+
 
 }

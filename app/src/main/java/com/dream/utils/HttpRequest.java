@@ -24,7 +24,7 @@ public class HttpRequest {
         requestQueue= Volley.newRequestQueue(context);
     }
 
-    public void sendRequest(int method, String url, final OnRequestFinish requestFinish){
+    public void sendVideoRequest(int method, String url, final OnRequestFinish requestFinish){
         StringRequest stringRequest=new StringRequest(method, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String s) {
@@ -54,6 +54,27 @@ public class HttpRequest {
         };
         requestQueue.add(stringRequest);
     }
+
+    public void sendRequest(int method, String url, final Map<String,String> params, final OnRequestFinish requestFinish){
+        StringRequest stringRequest=new StringRequest(method, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String s) {
+                requestFinish.success(s);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                requestFinish.error(volleyError.toString());
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                return params;
+            }
+        };
+        requestQueue.add(stringRequest);
+    }
+
 
     public interface OnRequestFinish{
         void success(String response);

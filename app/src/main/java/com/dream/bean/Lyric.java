@@ -7,8 +7,8 @@ package com.dream.bean;
 public class Lyric {
 
     private String content;
-    private long timePoint;
-    private long sleepTime;
+    private float timePoint;
+    private float sleepTime;
 
     public Lyric(String content, long timePoint, long sleepTime) {
         this.content = content;
@@ -24,19 +24,19 @@ public class Lyric {
         this.content = content;
     }
 
-    public long getTimePoint() {
+    public float getTimePoint() {
         return timePoint;
     }
 
-    public void setTimePoint(long timePoint) {
+    public void setTimePoint(float timePoint) {
         this.timePoint = timePoint;
     }
 
-    public long getSleepTime() {
+    public float getSleepTime() {
         return sleepTime;
     }
 
-    public void setSleepTime(long sleepTime) {
+    public void setSleepTime(float sleepTime) {
         this.sleepTime = sleepTime;
     }
 }

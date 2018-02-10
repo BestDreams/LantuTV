@@ -10,27 +10,40 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
 import com.dream.adapter.ViewPagerAdapater;
 import com.dream.service.MusicPlayService;
 import com.dream.utils.Config;
+import com.dream.utils.HttpRequest;
+import com.dream.utils.LyricUtils;
 import com.dream.utils.MyUtils;
 import com.dream.view.CircleImageView;
 import com.dream.view.LyricView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class SystemMusicPlayer extends AppCompatActivity implements View.OnClickListener {
@@ -80,6 +93,10 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
      */
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
+    /**
+     * 歌词解析工具
+     */
+    public LyricUtils lyricUtils;
 
     private ViewPager musicViewpager;
 
@@ -97,6 +114,7 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
             try {
                 service=IMusicPlayService.Stub.asInterface(iBinder);
                 if (service!=null){
+                    service.setShowNotification(false);
                     if (isFormNotification){
                         setViewData(true);
                     }else{
@@ -130,8 +148,8 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music);
         initView();
-        initMusicPage();
         initData();
+        initMusicPage();
         bindAndSatrtService();
     }
 
@@ -163,7 +181,7 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
                     break;
                 case MSG_MUSIC_LYRIC:
                     /**
-                     * 当前播放进度
+                     * 播放歌词
                      */
                     try {
                         musicCurlayric.setText(musicLyric.setIndex(service.getPregress()));
@@ -215,13 +233,21 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
          */
         View lyricView=View.inflate(this,R.layout.music_view_lyric,null);
         musicLyric = (LyricView) lyricView.findViewById(R.id.music_lyric);
+        musicLyric.setLyricList(lyricUtils.getLyricData(new File(Environment.getExternalStorageDirectory()+"/薛之谦-演员.lrc")));
 
+        /**
+         * 添加封面和歌词页
+         */
         musicPages=new ArrayList<>();
         musicPages.add(coverView);
         musicPages.add(lyricView);
         musicViewpager.setAdapter(new ViewPagerAdapater(musicPages));
     }
 
+    /**
+     * 解析歌词
+     */
+    private HttpRequest httpRequest;
     private void initData() {
         recevier=new MyBroadcastReceiver();
         IntentFilter intentFilter=new IntentFilter();
@@ -231,6 +257,8 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
         editor=sharedPreferences.edit();
         isFormNotification=getIntent().getBooleanExtra("notification",false);
         position=getIntent().getIntExtra("position",0);
+        lyricUtils=new LyricUtils();
+        httpRequest=new HttpRequest(this);
     }
 
     /**
@@ -243,10 +271,71 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
             try {
                 service.play();
                 setViewData(true);
+                loadingLyric(service.getMusicName(),service.getArtist());
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * 请求歌词
+     */
+    public void loadingLyric(String musicName,String artist){
+        /**
+         * 得到歌曲Id
+         */
+        Map<String,String> params=new HashMap<>();
+        params.put("s",musicName+artist);
+        params.put("limit","1");
+        params.put("type","1");
+        httpRequest.sendRequest(Request.Method.POST, Config.CONFIG_URL_MUSIC_SEARCH, params, new HttpRequest.OnRequestFinish() {
+            @Override
+            public void success(String response) {
+                getLyricById(getMusicId(response));
+            }
+
+            @Override
+            public void error(String error) {
+                System.out.println(error);
+            }
+        });
+    }
+
+    /**
+     * 得到歌曲Id
+     */
+    public String getMusicId(String info){
+        try {
+            JSONObject jsonObject=new JSONObject(info);
+            if (jsonObject.getInt("code")==200){
+                JSONObject result=new JSONObject(jsonObject.getString("result"));
+                JSONArray songs=new JSONArray(result.getString("songs"));
+                JSONObject object=songs.getJSONObject(0);
+                return object.getString("id");
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * 通过Id获取歌词
+     */
+    public String getLyricById(String id){
+        httpRequest.sendRequest(Request.Method.GET, Config.CONFIG_URL_MUSIC_LYRIC + id, null, new HttpRequest.OnRequestFinish() {
+            @Override
+            public void success(String response) {
+                Log.i("my",response);
+            }
+
+            @Override
+            public void error(String error) {
+                Log.i("my",error);
+            }
+        });
+        return "";
     }
 
     /**
@@ -258,7 +347,7 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
             if (service!=null){
                 isPlaying=service.isPlaying();
                 musicPlay.setImageResource(isPlaying?R.mipmap.music_pause:R.mipmap.music_play);
-                musicName.setText(MyUtils.fileNameRemoveSuffix(service.getMusicName()).split("-")[1].trim());
+                musicName.setText(MyUtils.getMusicName(MyUtils.fileNameRemoveSuffix(service.getMusicName())));
                 musicArtist.setText(" —  "+service.getArtist()+"  — ");
                 musicPlayMode=service.getPlayMode();
                 switch (musicPlayMode){
@@ -426,7 +515,7 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
     protected void onStop() {
         try {
             if (service.isPlaying()){
-                service.showInfoOnNotification();
+                service.showInfoOnNotification(service.getMusicName(),service.getArtist());
             }
         } catch (RemoteException e) {
             e.printStackTrace();
@@ -447,6 +536,7 @@ public class SystemMusicPlayer extends AppCompatActivity implements View.OnClick
         } catch (RemoteException e) {
             e.printStackTrace();
         }
+        httpRequest.close();
         unbindService(serviceConnection);
         unregisterReceiver(recevier);
         handler.removeCallbacksAndMessages(null);

@@ -112,7 +112,7 @@ public class NetworkVideoFragment extends BaseFragment {
         httpRequest=new HttpRequest(getActivity());
         netVideoViewList=new ArrayList<>();
         pagerTitleList=new ArrayList<>();
-        LoadNetVideoData();
+        //LoadNetVideoData();
     }
 
     private void initListener() {
@@ -185,7 +185,7 @@ public class NetworkVideoFragment extends BaseFragment {
      */
     public void LoadNetVideoData(){
         netVideoNodeMap=new HashMap<>();
-        httpRequest.sendRequest(Request.Method.GET, Config.CONFIG_URL_HOME, new HttpRequest.OnRequestFinish() {
+        httpRequest.sendVideoRequest(Request.Method.GET, Config.CONFIG_URL_VIDEO_HOME, new HttpRequest.OnRequestFinish() {
             @Override
             public void success(String response) {
                 try {
@@ -277,7 +277,7 @@ public class NetworkVideoFragment extends BaseFragment {
      * @param contId
      */
     public void getVideoById(final int total, final int index, final String nodeName, String contId){
-        httpRequest.sendRequest(Request.Method.GET, Config.CONFIG_URL_SINGLE_ID + contId, new HttpRequest.OnRequestFinish() {
+        httpRequest.sendVideoRequest(Request.Method.GET, Config.CONFIG_URL_VIDEO_SINGLE_ID + contId, new HttpRequest.OnRequestFinish() {
             @Override
             public void success(String response) {
                 NetVideo standardVideoByJson = getStandardVideoByJson(response);

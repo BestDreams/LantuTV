@@ -11,6 +11,7 @@ import android.media.MediaPlayer;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.provider.MediaStore;
+import android.service.notification.StatusBarNotification;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -63,6 +64,14 @@ public class MusicPlayService extends Service {
      */
     private NotificationManager notificationManager;
     /**
+     * 通知点击意图
+     */
+    private PendingIntent pendingIntent;
+    /**
+     * 通知对象
+     */
+    private Notification notification;
+    /**
      * 播放模式
      */
     private int playMode=0;
@@ -70,6 +79,10 @@ public class MusicPlayService extends Service {
      * 随机数
      */
     private Random random;
+    /**
+     *  是否正在显示通知
+     */
+    private boolean isShowNotification=false;
 
     @Override
     public void onCreate() {
@@ -80,6 +93,10 @@ public class MusicPlayService extends Service {
 
     private void initData() {
         random=new Random();
+        notificationManager= (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        Intent intent=new Intent(this,SystemMusicPlayer.class);
+        intent.putExtra("notification",true);
+        pendingIntent=PendingIntent.getActivity(this,2001,intent,PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     /**
@@ -115,6 +132,9 @@ public class MusicPlayService extends Service {
         @Override
         public void onPrepared(MediaPlayer mediaPlayer) {
             mediaPlayer.start();
+            if (notificationManager!=null&&isShowNotification){
+                showInfoOnNotification(getMusicName(),getArtist());
+            }
             sendBroadcast(new Intent(SystemMusicPlayer.BRODCAST_MUSIC_PERPARED));
         }
     }
@@ -160,18 +180,27 @@ public class MusicPlayService extends Service {
     /**
      *在通知栏显示歌曲播放通知
      */
-    private void showInfoOnNotification(){
-        notificationManager= (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        Intent intent=new Intent(this,SystemMusicPlayer.class);
-        intent.putExtra("notification",true);
-        PendingIntent pendingIntent=PendingIntent.getActivity(this,2001,intent,PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification notification=new Notification.Builder(this)
+    private void showInfoOnNotification(String musicName,String artist){
+        isShowNotification=true;
+        notification=new Notification.Builder(this)
                 .setSmallIcon(R.mipmap.music_item_icon)
-                .setContentTitle(getMusicName())
-                .setContentText(getArtist())
+                .setContentTitle(musicName)
+                .setContentText(artist)
                 .setContentIntent(pendingIntent)
                 .build();
+        notificationManager.cancel(Config.NOTIFICATION_MUSIC_ID);
         notificationManager.notify(Config.NOTIFICATION_MUSIC_ID, notification);
+    }
+
+    /**
+     * 是否正在显示通知
+     */
+    public boolean isShowNotification() {
+        return isShowNotification;
+    }
+
+    public void setShowNotification(boolean showNotification) {
+        isShowNotification = showNotification;
     }
 
     /**
@@ -384,8 +413,18 @@ public class MusicPlayService extends Service {
         }
 
         @Override
-        public void showInfoOnNotification() throws RemoteException {
-            service.showInfoOnNotification();
+        public void showInfoOnNotification(String musicName,String artist) throws RemoteException {
+            service.showInfoOnNotification(musicName,artist);
+        }
+
+        @Override
+        public boolean isShowNotification() throws RemoteException {
+            return service.isShowNotification();
+        }
+
+        @Override
+        public void setShowNotification(boolean showNotification) throws RemoteException {
+            service.setShowNotification(showNotification);
         }
     };
 

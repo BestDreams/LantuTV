@@ -1,7 +1,9 @@
 package com.dream.lantutv;
 
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
@@ -16,10 +18,12 @@ import com.dream.fragment.MusicFragment;
 import com.dream.fragment.NetworkMusicFragment;
 import com.dream.fragment.NetworkVideoFragment;
 import com.dream.fragment.VideoFragment;
+import com.dream.utils.LyricUtils;
 import com.dream.view.NoTouchViewPager;
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 import com.mxn.soul.flowingdrawer_core.FlowingDrawer;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
         initNavigationTabBar();
         initDrawer();
     }
+
+
 
     private FlowingDrawer mDrawer;
     public void initDrawer(){
